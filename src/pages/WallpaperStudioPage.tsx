@@ -12,6 +12,7 @@ import type {
   WallpaperLayer,
   WallpaperSpec,
 } from '../types/WallpaperSpec'
+import { useI18n } from '../i18n'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
 
@@ -124,6 +125,51 @@ const EFFECT_LIBRARY: EffectLibraryItem[] = [
     type: 'stars',
     name: 'Stars',
     description: 'Subtle twinkling points for night scenes.',
+  },
+]
+
+const createEffectLibrary = (
+  t: ReturnType<typeof useI18n>['t'],
+): EffectLibraryItem[] => [
+  {
+    type: 'glow_particles',
+    name: t('glowParticles'),
+    description: t('glowParticlesDesc'),
+  },
+  {
+    type: 'petals',
+    name: t('petals'),
+    description: t('petalsDesc'),
+  },
+  {
+    type: 'snow',
+    name: t('snow'),
+    description: t('snowDesc'),
+  },
+  {
+    type: 'rain',
+    name: t('rain'),
+    description: t('rainDesc'),
+  },
+  {
+    type: 'fireflies',
+    name: t('fireflies'),
+    description: t('firefliesDesc'),
+  },
+  {
+    type: 'fog',
+    name: t('fog'),
+    description: t('fogDesc'),
+  },
+  {
+    type: 'light_rays',
+    name: t('lightRays'),
+    description: t('lightRaysDesc'),
+  },
+  {
+    type: 'stars',
+    name: t('stars'),
+    description: t('starsDesc'),
   },
 ]
 
@@ -250,6 +296,8 @@ const applyPresetToSpec = (
 }
 
 export function WallpaperStudioPage() {
+  const { t } = useI18n()
+  const effectLibrary = createEffectLibrary(t)
   const [wallpaperSpec, setWallpaperSpec] = useState<WallpaperSpec | null>(null)
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null)
   const [preset, setPreset] = useState<ScenePreset>('dreamy')
@@ -438,13 +486,13 @@ export function WallpaperStudioPage() {
   const selectedEffectMetadata =
     selectedLayer?.type === 'background'
       ? null
-      : EFFECT_LIBRARY.find((effect) => effect.type === selectedLayer?.type) ??
+      : effectLibrary.find((effect) => effect.type === selectedLayer?.type) ??
         null
 
   return (
     <main className="wallpaper-studio">
       <EffectLibrarySidebar
-        effects={EFFECT_LIBRARY}
+        effects={effectLibrary}
         spec={wallpaperSpec}
         selectedLayerId={selectedLayerId}
         onEffectSelect={handleEffectSelect}
@@ -472,7 +520,7 @@ export function WallpaperStudioPage() {
         )}
 
         <section className="preset-panel" aria-label="Scene presets">
-          <p className="panel-kicker">Presets</p>
+          <p className="panel-kicker">{t('presets')}</p>
           <div className="preset-control">
             {Object.keys(EFFECT_PRESETS).map((presetName) => (
               <button

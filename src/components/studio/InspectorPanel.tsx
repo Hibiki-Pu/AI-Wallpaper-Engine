@@ -1,5 +1,6 @@
 import type { WallpaperLayer } from '../../types/WallpaperSpec'
 import type { EffectLibraryItem } from './EffectCard'
+import { useI18n } from '../../i18n'
 
 interface InspectorPanelProps {
   layer: WallpaperLayer | null
@@ -15,11 +16,13 @@ export function InspectorPanel({
   metadata,
   onEffectChange,
 }: InspectorPanelProps) {
+  const { t } = useI18n()
+
   if (!layer) {
     return (
       <section className="inspector-panel" aria-label="Inspector panel">
-        <p className="panel-kicker">Inspector</p>
-        <h2>No layer selected</h2>
+        <p className="panel-kicker">{t('inspector')}</p>
+        <h2>{t('noLayerSelected')}</h2>
       </section>
     )
   }
@@ -29,10 +32,10 @@ export function InspectorPanel({
   return (
     <section className="inspector-panel" aria-label="Inspector panel">
       <div>
-        <p className="panel-kicker">Inspector</p>
-        <h2>{layer.name}</h2>
+        <p className="panel-kicker">{t('inspector')}</p>
+        <h2>{metadata?.name ?? t('background')}</h2>
         <p className="inspector-description">
-          {metadata?.description ?? 'Base wallpaper image layer.'}
+          {metadata?.description ?? t('baseImageLayer')}
         </p>
       </div>
 
@@ -45,7 +48,7 @@ export function InspectorPanel({
             onEffectChange(layer.id, { visible: event.target.checked })
           }
         />
-        <span>visible</span>
+        <span>{t('visible')}</span>
       </label>
 
       <label className="inspector-toggle">
@@ -56,13 +59,13 @@ export function InspectorPanel({
             onEffectChange(layer.id, { locked: event.target.checked })
           }
         />
-        <span>locked</span>
+        <span>{t('locked')}</span>
       </label>
 
       {!isBackground && (
         <>
           <label className="inspector-field">
-            <span>count</span>
+            <span>{t('count')}</span>
             <input
               type="number"
               min="0"
@@ -81,7 +84,7 @@ export function InspectorPanel({
           </label>
 
           <label className="inspector-field">
-            <span>speed</span>
+            <span>{t('speed')}</span>
             <input
               type="range"
               min="0.5"
@@ -102,7 +105,7 @@ export function InspectorPanel({
           </label>
 
           <label className="inspector-field">
-            <span>opacity</span>
+            <span>{t('opacity')}</span>
             <input
               type="range"
               min="0"

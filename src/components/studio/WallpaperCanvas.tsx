@@ -1,6 +1,8 @@
 import { ImageUploader } from '../ImageUploader'
 import { WallpaperRenderer } from '../../renderer/WallpaperRenderer'
 import type { WallpaperSpec } from '../../types/WallpaperSpec'
+import { LanguageToggle } from '../LanguageToggle'
+import { useI18n } from '../../i18n'
 
 interface WallpaperCanvasProps {
   spec: WallpaperSpec | null
@@ -13,21 +15,26 @@ export function WallpaperCanvas({
   onImageSelected,
   onOpenPreview,
 }: WallpaperCanvasProps) {
+  const { t } = useI18n()
+
   return (
     <section className="wallpaper-canvas-panel" aria-labelledby="canvas-title">
       <div className="canvas-toolbar">
         <div>
-          <p className="panel-kicker">Canvas</p>
-          <h1 id="canvas-title">Wallpaper Canvas</h1>
+          <p className="panel-kicker">{t('canvas')}</p>
+          <h1 id="canvas-title">{t('wallpaperCanvas')}</h1>
         </div>
-        <button
-          type="button"
-          className="open-preview-button"
-          disabled={!spec}
-          onClick={onOpenPreview}
-        >
-          Open fullscreen preview
-        </button>
+        <div className="canvas-actions">
+          <LanguageToggle />
+          <button
+            type="button"
+            className="open-preview-button"
+            disabled={!spec}
+            onClick={onOpenPreview}
+          >
+            {t('openFullscreenPreview')}
+          </button>
+        </div>
       </div>
 
       <div className="wallpaper-canvas-frame">

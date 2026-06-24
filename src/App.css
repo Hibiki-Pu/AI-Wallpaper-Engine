@@ -216,6 +216,26 @@
   gap: 16px;
 }
 
+.canvas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.language-toggle {
+  min-height: 34px;
+  padding: 0 12px;
+  color: #176b80;
+  background: #ffffff;
+  border: 1px solid #b7d9e2;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .wallpaper-canvas-frame {
   position: relative;
   display: grid;
@@ -821,6 +841,14 @@
   .export-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .canvas-actions {
+    justify-content: stretch;
+  }
+
+  .canvas-actions button {
+    flex: 1 1 160px;
   }
 
   .export-actions {

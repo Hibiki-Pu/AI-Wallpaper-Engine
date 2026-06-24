@@ -1,5 +1,6 @@
 import type { WallpaperEffectLayerType, WallpaperSpec } from '../../types/WallpaperSpec'
 import { EffectCard, type EffectLibraryItem } from './EffectCard'
+import { useI18n } from '../../i18n'
 
 interface EffectLibrarySidebarProps {
   effects: EffectLibraryItem[]
@@ -16,14 +17,15 @@ export function EffectLibrarySidebar({
   onEffectSelect,
   onEffectToggle,
 }: EffectLibrarySidebarProps) {
+  const { t } = useI18n()
   const findLayer = (type: WallpaperEffectLayerType) =>
     spec?.layers.find((layer) => layer.type === type)
 
   return (
     <aside className="effect-library-sidebar" aria-label="Effect library">
       <div>
-        <p className="panel-kicker">Library</p>
-        <h2>Effects</h2>
+        <p className="panel-kicker">{t('library')}</p>
+        <h2>{t('effects')}</h2>
       </div>
 
       <div className="effect-card-list">

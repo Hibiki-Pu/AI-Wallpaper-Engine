@@ -1,4 +1,5 @@
 import type { WallpaperEffectLayerType } from '../../types/WallpaperSpec'
+import { useI18n } from '../../i18n'
 
 export interface EffectLibraryItem {
   type: WallpaperEffectLayerType
@@ -23,6 +24,8 @@ export function EffectCard({
   onSelect,
   onToggle,
 }: EffectCardProps) {
+  const { t } = useI18n()
+
   return (
     <article
       className={`effect-card ${selected ? 'selected' : ''}`}
@@ -33,7 +36,7 @@ export function EffectCard({
         <div className="effect-card-header">
           <h3>{effect.name}</h3>
           <span className={enabled ? 'status-enabled' : 'status-disabled'}>
-            {enabled ? 'Enabled' : 'Off'}
+            {enabled ? t('enabled') : t('off')}
           </span>
         </div>
         <p>{effect.description}</p>
@@ -47,7 +50,7 @@ export function EffectCard({
           onToggle(!enabled)
         }}
       >
-        {enabled ? 'Remove' : 'Add'}
+        {enabled ? t('remove') : t('add')}
       </button>
     </article>
   )

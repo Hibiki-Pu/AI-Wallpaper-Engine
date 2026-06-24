@@ -1,4 +1,5 @@
 import type { WallpaperLayer } from '../../types/WallpaperSpec'
+import { useI18n } from '../../i18n'
 
 interface LayerPanelProps {
   layers: WallpaperLayer[]
@@ -17,13 +18,32 @@ export function LayerPanel({
   onLayerDelete,
   onMoveLayer,
 }: LayerPanelProps) {
+  const { t } = useI18n()
   const orderedLayers = [...layers].sort((a, b) => b.zIndex - a.zIndex)
+  const getLayerName = (layer: WallpaperLayer) => {
+    if (layer.type === 'background') {
+      return t('background')
+    }
+
+    const labels = {
+      glow_particles: t('glowParticles'),
+      petals: t('petals'),
+      snow: t('snow'),
+      rain: t('rain'),
+      fireflies: t('fireflies'),
+      fog: t('fog'),
+      light_rays: t('lightRays'),
+      stars: t('stars'),
+    }
+
+    return labels[layer.type]
+  }
 
   return (
     <section className="layer-panel" aria-label="Layer panel">
       <div>
-        <p className="panel-kicker">Layers</p>
-        <h2>Layer Stack</h2>
+        <p className="panel-kicker">{t('layers')}</p>
+        <h2>{t('layerStack')}</h2>
       </div>
 
       <div className="layer-list">
@@ -37,8 +57,10 @@ export function LayerPanel({
               onClick={() => onLayerSelect(layer.id)}
             >
               <div>
-                <h3>{layer.name}</h3>
-                <p>z-index {layer.zIndex}</p>
+                <h3>{getLayerName(layer)}</h3>
+                <p>
+                  {t('zIndex')} {layer.zIndex}
+                </p>
               </div>
 
               <div className="layer-actions">
@@ -51,7 +73,7 @@ export function LayerPanel({
                       onLayerChange(layer.id, { visible: event.target.checked })
                     }
                   />
-                  <span>visible</span>
+                  <span>{t('visible')}</span>
                 </label>
                 <label title="Locked">
                   <input
@@ -61,7 +83,7 @@ export function LayerPanel({
                       onLayerChange(layer.id, { locked: event.target.checked })
                     }
                   />
-                  <span>locked</span>
+                  <span>{t('locked')}</span>
                 </label>
                 <button
                   type="button"
@@ -71,7 +93,7 @@ export function LayerPanel({
                     onMoveLayer(layer.id, 'up')
                   }}
                 >
-                  Move Up
+                  {t('moveUp')}
                 </button>
                 <button
                   type="button"
@@ -81,7 +103,7 @@ export function LayerPanel({
                     onMoveLayer(layer.id, 'down')
                   }}
                 >
-                  Move Down
+                  {t('moveDown')}
                 </button>
                 <button
                   type="button"
@@ -91,7 +113,7 @@ export function LayerPanel({
                     onLayerDelete(layer.id)
                   }}
                 >
-                  Delete
+                  {t('delete')}
                 </button>
               </div>
             </article>

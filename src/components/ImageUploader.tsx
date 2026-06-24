@@ -1,10 +1,12 @@
 import type { ChangeEvent } from 'react'
+import { useI18n } from '../i18n'
 
 interface ImageUploaderProps {
   onImageSelected: (file: File) => void
 }
 
 export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
+  const { t } = useI18n()
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
 
@@ -18,11 +20,9 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
   return (
     <section className="uploader-panel" aria-labelledby="upload-title">
       <div>
-        <p className="panel-kicker">Source</p>
-        <h1 id="upload-title">AI Wallpaper Engine</h1>
-        <p className="panel-copy">
-          Import an image to create the first wallpaper preview.
-        </p>
+        <p className="panel-kicker">{t('source')}</p>
+        <h1 id="upload-title">{t('appName')}</h1>
+        <p className="panel-copy">{t('uploadCopy')}</p>
       </div>
 
       <label className="upload-dropzone">
@@ -32,8 +32,8 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
           className="upload-input"
           onChange={handleFileChange}
         />
-        <span className="upload-title">Choose image</span>
-        <span className="upload-hint">PNG, JPG, GIF, or WebP</span>
+        <span className="upload-title">{t('chooseImage')}</span>
+        <span className="upload-hint">{t('imageFormats')}</span>
       </label>
     </section>
   )
