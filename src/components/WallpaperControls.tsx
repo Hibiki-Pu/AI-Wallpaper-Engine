@@ -1,21 +1,34 @@
 import type { WallpaperEffectSpec, WallpaperSpec } from '../types/WallpaperSpec'
 
-type IntensityPreset = 'soft' | 'medium' | 'strong'
+type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
 
 interface WallpaperControlsProps {
   disabled: boolean
-  preset: IntensityPreset
+  preset: ScenePreset
   spec: WallpaperSpec | null
   onEffectToggle: (type: WallpaperEffectSpec['type'], enabled: boolean) => void
-  onPresetChange: (preset: IntensityPreset) => void
+  onPresetChange: (preset: ScenePreset) => void
 }
 
 const EFFECT_LABELS: Record<WallpaperEffectSpec['type'], string> = {
   glow_particles: 'Glow particles',
   petals: 'Petals',
+  snow: 'Snow',
+  rain: 'Rain',
+  fireflies: 'Fireflies',
+  fog: 'Fog',
+  light_rays: 'Light rays',
+  stars: 'Stars',
 }
 
-const PRESETS: IntensityPreset[] = ['soft', 'medium', 'strong']
+const PRESETS: ScenePreset[] = [
+  'dreamy',
+  'nature',
+  'winter',
+  'rainy',
+  'fantasy',
+  'night',
+]
 
 export function WallpaperControls({
   disabled,
@@ -54,7 +67,7 @@ export function WallpaperControls({
       </div>
 
       <div>
-        <p className="control-label">Intensity</p>
+        <p className="control-label">Preset</p>
         <div className="preset-control">
           {PRESETS.map((presetName) => (
             <button

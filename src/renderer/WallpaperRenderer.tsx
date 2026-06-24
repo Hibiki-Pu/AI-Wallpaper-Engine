@@ -1,7 +1,13 @@
 import type { CSSProperties } from 'react'
 import type { WallpaperEffectSpec, WallpaperSpec } from '../types/WallpaperSpec'
+import { FirefliesEffect } from './effects/FirefliesEffect'
+import { FogEffect } from './effects/FogEffect'
 import { GlowParticlesEffect } from './effects/GlowParticlesEffect'
+import { LightRaysEffect } from './effects/LightRaysEffect'
 import { PetalsEffect } from './effects/PetalsEffect'
+import { RainEffect } from './effects/RainEffect'
+import { SnowEffect } from './effects/SnowEffect'
+import { StarsEffect } from './effects/StarsEffect'
 
 interface WallpaperRendererProps {
   spec: WallpaperSpec
@@ -13,6 +19,18 @@ const renderEffect = (effect: WallpaperEffectSpec) => {
       return <GlowParticlesEffect key={effect.type} effect={effect} />
     case 'petals':
       return <PetalsEffect key={effect.type} effect={effect} />
+    case 'snow':
+      return <SnowEffect key={effect.type} effect={effect} />
+    case 'rain':
+      return <RainEffect key={effect.type} effect={effect} />
+    case 'fireflies':
+      return <FirefliesEffect key={effect.type} effect={effect} />
+    case 'fog':
+      return <FogEffect key={effect.type} effect={effect} />
+    case 'light_rays':
+      return <LightRaysEffect key={effect.type} effect={effect} />
+    case 'stars':
+      return <StarsEffect key={effect.type} effect={effect} />
   }
 }
 

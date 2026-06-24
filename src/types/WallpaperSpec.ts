@@ -11,7 +11,15 @@ export interface WallpaperCameraSpec {
 }
 
 export interface WallpaperEffectSpec {
-  type: 'glow_particles' | 'petals'
+  type:
+    | 'glow_particles'
+    | 'petals'
+    | 'snow'
+    | 'rain'
+    | 'fireflies'
+    | 'fog'
+    | 'light_rays'
+    | 'stars'
   enabled: boolean
   count: number
   speed: number

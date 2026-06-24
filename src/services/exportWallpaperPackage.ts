@@ -139,6 +139,112 @@ const createPackageHtml = () => `<!doctype html>
         will-change: transform;
       }
 
+      .snowflake {
+        position: absolute;
+        left: var(--snow-x);
+        top: -8%;
+        width: var(--snow-size);
+        height: var(--snow-size);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 8px rgba(226, 244, 255, 0.55);
+        animation: snow-fall var(--snow-duration) linear infinite;
+        animation-delay: var(--snow-delay);
+        will-change: transform;
+      }
+
+      .rain-layer {
+        background: linear-gradient(180deg, rgba(22, 32, 51, 0.18), transparent);
+      }
+
+      .raindrop {
+        position: absolute;
+        left: var(--rain-x);
+        top: -16%;
+        width: 1px;
+        height: var(--rain-length);
+        background: linear-gradient(180deg, transparent, rgba(210, 236, 255, 0.8));
+        transform: rotate(12deg);
+        animation: rain-fall var(--rain-duration) linear infinite;
+        animation-delay: var(--rain-delay);
+        will-change: transform;
+      }
+
+      .fireflies-layer,
+      .light-rays-layer,
+      .stars-layer {
+        mix-blend-mode: screen;
+      }
+
+      .firefly {
+        position: absolute;
+        left: var(--firefly-x);
+        top: var(--firefly-y);
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(255, 244, 154, 0.9);
+        box-shadow:
+          0 0 10px rgba(255, 231, 112, 0.85),
+          0 0 22px rgba(234, 179, 8, 0.42);
+        animation: firefly-drift var(--firefly-duration) ease-in-out infinite;
+        animation-delay: var(--firefly-delay);
+        will-change: transform, opacity;
+      }
+
+      .fog-bank {
+        position: absolute;
+        left: -30%;
+        top: var(--fog-y);
+        width: 70%;
+        height: 24%;
+        border-radius: 999px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(235, 245, 255, 0.44),
+          rgba(235, 245, 255, 0) 68%
+        );
+        filter: blur(18px);
+        transform: scale(var(--fog-scale));
+        animation: fog-drift var(--fog-duration) ease-in-out infinite;
+        animation-delay: var(--fog-delay);
+        will-change: transform;
+      }
+
+      .light-ray {
+        position: absolute;
+        top: -18%;
+        left: var(--ray-x);
+        width: var(--ray-width);
+        height: 135%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 246, 203, 0.28),
+          transparent
+        );
+        filter: blur(8px);
+        transform: rotate(var(--ray-rotation));
+        transform-origin: top center;
+        animation: light-ray-pulse var(--ray-duration) ease-in-out infinite;
+        animation-delay: var(--ray-delay);
+        will-change: opacity, transform;
+      }
+
+      .star {
+        position: absolute;
+        left: var(--star-x);
+        top: var(--star-y);
+        width: var(--star-size);
+        height: var(--star-size);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 8px rgba(196, 220, 255, 0.85);
+        animation: star-twinkle var(--star-duration) ease-in-out infinite;
+        animation-delay: var(--star-delay);
+        will-change: opacity, transform;
+      }
+
       .error {
         display: grid;
         place-items: center;
@@ -179,6 +285,77 @@ const createPackageHtml = () => `<!doctype html>
         to {
           transform: translate3d(var(--petal-drift), 122vh, 0)
             rotate(calc(var(--petal-rotation) + 180deg));
+        }
+      }
+
+      @keyframes snow-fall {
+        from {
+          transform: translate3d(0, -10%, 0);
+        }
+
+        to {
+          transform: translate3d(var(--snow-drift), 116vh, 0);
+        }
+      }
+
+      @keyframes rain-fall {
+        from {
+          transform: translate3d(0, -18%, 0) rotate(12deg);
+        }
+
+        to {
+          transform: translate3d(-42px, 120vh, 0) rotate(12deg);
+        }
+      }
+
+      @keyframes firefly-drift {
+        0%,
+        100% {
+          opacity: 0.18;
+          transform: translate3d(0, 0, 0) scale(0.8);
+        }
+
+        50% {
+          opacity: 1;
+          transform: translate3d(var(--firefly-drift-x), var(--firefly-drift-y), 0)
+            scale(1.15);
+        }
+      }
+
+      @keyframes fog-drift {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) scale(var(--fog-scale));
+        }
+
+        50% {
+          transform: translate3d(55%, -4%, 0) scale(calc(var(--fog-scale) + 0.12));
+        }
+      }
+
+      @keyframes light-ray-pulse {
+        0%,
+        100% {
+          opacity: 0.22;
+          transform: rotate(var(--ray-rotation)) translate3d(-2%, 0, 0);
+        }
+
+        50% {
+          opacity: 0.7;
+          transform: rotate(var(--ray-rotation)) translate3d(4%, 0, 0);
+        }
+      }
+
+      @keyframes star-twinkle {
+        0%,
+        100% {
+          opacity: 0.35;
+          transform: scale(0.8);
+        }
+
+        50% {
+          opacity: 1;
+          transform: scale(1.25);
         }
       }
     </style>
@@ -223,6 +400,77 @@ const createPackageHtml = () => `<!doctype html>
         };
       };
 
+      const createSnowflake = (id, speed) => {
+        const seed = id + 1;
+
+        return {
+          x: (seed * 41) % 100,
+          size: 2 + ((seed * 11) % 6),
+          delay: -((seed * 17) % 120) / 10,
+          duration: Math.max(7, 22 - speed * 4) + ((seed * 5) % 8),
+          drift: -28 + ((seed * 23) % 56),
+        };
+      };
+
+      const createDrop = (id, speed) => {
+        const seed = id + 1;
+
+        return {
+          x: (seed * 31) % 100,
+          length: 34 + ((seed * 13) % 34),
+          delay: -((seed * 7) % 80) / 10,
+          duration: Math.max(0.45, 1.8 - speed * 0.28) + ((seed * 3) % 5) / 10,
+        };
+      };
+
+      const createFirefly = (id, speed) => {
+        const seed = id + 1;
+
+        return {
+          x: (seed * 43) % 100,
+          y: 35 + ((seed * 19) % 55),
+          delay: -((seed * 29) % 100) / 10,
+          duration: Math.max(5, 15 - speed * 2) + ((seed * 7) % 6),
+          driftX: -36 + ((seed * 17) % 72),
+          driftY: -24 + ((seed * 11) % 48),
+        };
+      };
+
+      const createFog = (id, speed) => {
+        const seed = id + 1;
+
+        return {
+          y: 18 + ((seed * 23) % 70),
+          delay: -((seed * 13) % 80) / 10,
+          duration: Math.max(12, 34 - speed * 5) + ((seed * 7) % 8),
+          scale: 0.8 + ((seed * 5) % 8) / 10,
+        };
+      };
+
+      const createRay = (id, speed) => {
+        const seed = id + 1;
+
+        return {
+          x: (seed * 21) % 90,
+          width: 12 + ((seed * 9) % 20),
+          delay: -((seed * 17) % 90) / 10,
+          duration: Math.max(8, 24 - speed * 3) + ((seed * 5) % 7),
+          rotation: -22 + ((seed * 11) % 28),
+        };
+      };
+
+      const createStar = (id, speed) => {
+        const seed = id + 1;
+
+        return {
+          x: (seed * 47) % 100,
+          y: (seed * 31) % 82,
+          size: 1 + ((seed * 7) % 3),
+          delay: -((seed * 19) % 80) / 10,
+          duration: Math.max(2.5, 8 - speed) + ((seed * 5) % 4),
+        };
+      };
+
       const renderGlowParticles = (effect) => {
         const layer = document.createElement('div');
         layer.className = 'effect-layer glow-particles-layer';
@@ -264,6 +512,125 @@ const createPackageHtml = () => `<!doctype html>
         return layer;
       };
 
+      const renderSnow = (effect) => {
+        const layer = document.createElement('div');
+        layer.className = 'effect-layer snow-layer';
+        layer.style.opacity = effect.opacity;
+
+        for (let index = 0; index < effect.count; index += 1) {
+          const flake = createSnowflake(index, effect.speed);
+          const element = document.createElement('span');
+          element.className = 'snowflake';
+          element.style.setProperty('--snow-x', flake.x + '%');
+          element.style.setProperty('--snow-size', flake.size + 'px');
+          element.style.setProperty('--snow-delay', flake.delay + 's');
+          element.style.setProperty('--snow-duration', flake.duration + 's');
+          element.style.setProperty('--snow-drift', flake.drift + 'px');
+          layer.append(element);
+        }
+
+        return layer;
+      };
+
+      const renderRain = (effect) => {
+        const layer = document.createElement('div');
+        layer.className = 'effect-layer rain-layer';
+        layer.style.opacity = effect.opacity;
+
+        for (let index = 0; index < effect.count; index += 1) {
+          const drop = createDrop(index, effect.speed);
+          const element = document.createElement('span');
+          element.className = 'raindrop';
+          element.style.setProperty('--rain-x', drop.x + '%');
+          element.style.setProperty('--rain-length', drop.length + 'px');
+          element.style.setProperty('--rain-delay', drop.delay + 's');
+          element.style.setProperty('--rain-duration', drop.duration + 's');
+          layer.append(element);
+        }
+
+        return layer;
+      };
+
+      const renderFireflies = (effect) => {
+        const layer = document.createElement('div');
+        layer.className = 'effect-layer fireflies-layer';
+        layer.style.opacity = effect.opacity;
+
+        for (let index = 0; index < effect.count; index += 1) {
+          const firefly = createFirefly(index, effect.speed);
+          const element = document.createElement('span');
+          element.className = 'firefly';
+          element.style.setProperty('--firefly-x', firefly.x + '%');
+          element.style.setProperty('--firefly-y', firefly.y + '%');
+          element.style.setProperty('--firefly-delay', firefly.delay + 's');
+          element.style.setProperty('--firefly-duration', firefly.duration + 's');
+          element.style.setProperty('--firefly-drift-x', firefly.driftX + 'px');
+          element.style.setProperty('--firefly-drift-y', firefly.driftY + 'px');
+          layer.append(element);
+        }
+
+        return layer;
+      };
+
+      const renderFog = (effect) => {
+        const layer = document.createElement('div');
+        layer.className = 'effect-layer fog-layer';
+        layer.style.opacity = effect.opacity;
+
+        for (let index = 0; index < effect.count; index += 1) {
+          const fog = createFog(index, effect.speed);
+          const element = document.createElement('span');
+          element.className = 'fog-bank';
+          element.style.setProperty('--fog-y', fog.y + '%');
+          element.style.setProperty('--fog-delay', fog.delay + 's');
+          element.style.setProperty('--fog-duration', fog.duration + 's');
+          element.style.setProperty('--fog-scale', fog.scale);
+          layer.append(element);
+        }
+
+        return layer;
+      };
+
+      const renderLightRays = (effect) => {
+        const layer = document.createElement('div');
+        layer.className = 'effect-layer light-rays-layer';
+        layer.style.opacity = effect.opacity;
+
+        for (let index = 0; index < effect.count; index += 1) {
+          const ray = createRay(index, effect.speed);
+          const element = document.createElement('span');
+          element.className = 'light-ray';
+          element.style.setProperty('--ray-x', ray.x + '%');
+          element.style.setProperty('--ray-width', ray.width + '%');
+          element.style.setProperty('--ray-delay', ray.delay + 's');
+          element.style.setProperty('--ray-duration', ray.duration + 's');
+          element.style.setProperty('--ray-rotation', ray.rotation + 'deg');
+          layer.append(element);
+        }
+
+        return layer;
+      };
+
+      const renderStars = (effect) => {
+        const layer = document.createElement('div');
+        layer.className = 'effect-layer stars-layer';
+        layer.style.opacity = effect.opacity;
+
+        for (let index = 0; index < effect.count; index += 1) {
+          const star = createStar(index, effect.speed);
+          const element = document.createElement('span');
+          element.className = 'star';
+          element.style.setProperty('--star-x', star.x + '%');
+          element.style.setProperty('--star-y', star.y + '%');
+          element.style.setProperty('--star-size', star.size + 'px');
+          element.style.setProperty('--star-delay', star.delay + 's');
+          element.style.setProperty('--star-duration', star.duration + 's');
+          layer.append(element);
+        }
+
+        return layer;
+      };
+
       const renderWallpaper = (spec) => {
         wallpaper.innerHTML = '';
 
@@ -292,6 +659,30 @@ const createPackageHtml = () => `<!doctype html>
 
             if (effect.type === 'petals') {
               wallpaper.append(renderPetals(effect));
+            }
+
+            if (effect.type === 'snow') {
+              wallpaper.append(renderSnow(effect));
+            }
+
+            if (effect.type === 'rain') {
+              wallpaper.append(renderRain(effect));
+            }
+
+            if (effect.type === 'fireflies') {
+              wallpaper.append(renderFireflies(effect));
+            }
+
+            if (effect.type === 'fog') {
+              wallpaper.append(renderFog(effect));
+            }
+
+            if (effect.type === 'light_rays') {
+              wallpaper.append(renderLightRays(effect));
+            }
+
+            if (effect.type === 'stars') {
+              wallpaper.append(renderStars(effect));
             }
           });
       };
