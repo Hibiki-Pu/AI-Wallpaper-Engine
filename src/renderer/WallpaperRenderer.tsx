@@ -1,5 +1,9 @@
 import type { CSSProperties } from 'react'
-import type { WallpaperEffectSpec, WallpaperSpec } from '../types/WallpaperSpec'
+import type {
+  WallpaperEffectSpec,
+  WallpaperLayer,
+  WallpaperSpec,
+} from '../types/WallpaperSpec'
 import { FirefliesEffect } from './effects/FirefliesEffect'
 import { FogEffect } from './effects/FogEffect'
 import { GlowParticlesEffect } from './effects/GlowParticlesEffect'
@@ -34,27 +38,67 @@ const renderEffect = (effect: WallpaperEffectSpec) => {
   }
 }
 
+const layerToEffect = (layer: WallpaperLayer): WallpaperEffectSpec | null => {
+  if (layer.type === 'background' || !layer.visible) {
+    return null
+  }
+
+  return {
+    type: layer.type,
+    enabled: layer.visible,
+    count: layer.settings.count ?? 0,
+    speed: layer.settings.speed ?? 1,
+    opacity: layer.settings.opacity ?? 0,
+  }
+}
+
 export function WallpaperRenderer({ spec }: WallpaperRendererProps) {
   const shouldAnimateCamera = spec.camera.type === 'ken_burns'
+  const layers = spec.layers?.length
+    ? [...spec.layers].sort((a, b) => a.zIndex - b.zIndex)
+    : []
+  const backgroundLayer = layers.find((layer) => layer.type === 'background')
+  const shouldShowBackground = !backgroundLayer || backgroundLayer.visible
 
   return (
     <div className="wallpaper-renderer">
-      <img
-        className={
-          shouldAnimateCamera
-            ? 'wallpaper-image wallpaper-image-ken-burns'
-            : 'wallpaper-image'
-        }
-        src={spec.imageUrl}
-        alt="Uploaded wallpaper preview"
-        style={
-          {
-            '--camera-zoom': spec.camera.zoom,
-            '--camera-duration': `${Math.max(6, 28 - spec.camera.speed * 4)}s`,
-          } as CSSProperties
-        }
-      />
-      {spec.effects.map(renderEffect)}
+      {shouldShowBackground && (
+        <img
+          className={
+            shouldAnimateCamera
+              ? 'wallpaper-image wallpaper-image-ken-burns'
+              : 'wallpaper-image'
+          }
+          src={spec.imageUrl}
+          alt="Uploaded wallpaper preview"
+          style={
+            {
+              '--camera-zoom': spec.camera.zoom,
+              '--camera-duration': `${Math.max(6, 28 - spec.camera.speed * 4)}s`,
+              zIndex: backgroundLayer?.zIndex ?? 0,
+            } as CSSProperties
+          }
+        />
+      )}
+      {layers.length
+        ? layers.map((layer) => {
+            const effect = layerToEffect(layer)
+
+            if (!effect) {
+              return null
+            }
+
+            return (
+              <div
+                key={layer.id}
+                className="wallpaper-layer-node"
+                style={{ zIndex: layer.zIndex }}
+              >
+                {renderEffect(effect)}
+              </div>
+            )
+          })
+        : spec.effects.map(renderEffect)}
     </div>
   )
 }

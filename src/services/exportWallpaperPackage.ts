@@ -631,6 +631,33 @@ const createPackageHtml = () => `<!doctype html>
         return layer;
       };
 
+      const layerToEffect = (layer) => {
+        if (layer.type === 'background' || !layer.visible) {
+          return null;
+        }
+
+        return {
+          type: layer.type,
+          enabled: layer.visible,
+          count: layer.settings.count || 0,
+          speed: layer.settings.speed || 1,
+          opacity: layer.settings.opacity || 0,
+          zIndex: layer.zIndex,
+        };
+      };
+
+      const getRenderableEffects = (spec) => {
+        if (Array.isArray(spec.layers) && spec.layers.length > 0) {
+          return spec.layers
+            .slice()
+            .sort((a, b) => a.zIndex - b.zIndex)
+            .map(layerToEffect)
+            .filter(Boolean);
+        }
+
+        return spec.effects || [];
+      };
+
       const renderWallpaper = (spec) => {
         wallpaper.innerHTML = '';
 
@@ -639,6 +666,9 @@ const createPackageHtml = () => `<!doctype html>
         image.src = spec.imageUrl;
         image.alt = '';
         image.style.setProperty('--camera-zoom', spec.camera.zoom);
+        image.style.zIndex =
+          (spec.layers || []).find((layer) => layer.type === 'background')
+            ?.zIndex || 0;
         image.style.setProperty(
           '--camera-duration',
           Math.max(6, 28 - spec.camera.speed * 4) + 's',
@@ -650,39 +680,44 @@ const createPackageHtml = () => `<!doctype html>
 
         wallpaper.append(image);
 
-        spec.effects
+        getRenderableEffects(spec)
           .filter((effect) => effect.enabled && effect.count > 0)
           .forEach((effect) => {
+            const appendLayer = (layer) => {
+              layer.style.zIndex = effect.zIndex || 2;
+              wallpaper.append(layer);
+            };
+
             if (effect.type === 'glow_particles') {
-              wallpaper.append(renderGlowParticles(effect));
+              appendLayer(renderGlowParticles(effect));
             }
 
             if (effect.type === 'petals') {
-              wallpaper.append(renderPetals(effect));
+              appendLayer(renderPetals(effect));
             }
 
             if (effect.type === 'snow') {
-              wallpaper.append(renderSnow(effect));
+              appendLayer(renderSnow(effect));
             }
 
             if (effect.type === 'rain') {
-              wallpaper.append(renderRain(effect));
+              appendLayer(renderRain(effect));
             }
 
             if (effect.type === 'fireflies') {
-              wallpaper.append(renderFireflies(effect));
+              appendLayer(renderFireflies(effect));
             }
 
             if (effect.type === 'fog') {
-              wallpaper.append(renderFog(effect));
+              appendLayer(renderFog(effect));
             }
 
             if (effect.type === 'light_rays') {
-              wallpaper.append(renderLightRays(effect));
+              appendLayer(renderLightRays(effect));
             }
 
             if (effect.type === 'stars') {
-              wallpaper.append(renderStars(effect));
+              appendLayer(renderStars(effect));
             }
           });
       };
