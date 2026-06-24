@@ -1,4 +1,5 @@
 import type { WallpaperSpec } from '../types/WallpaperSpec'
+import { WallpaperRenderer } from '../renderer/WallpaperRenderer'
 
 interface WallpaperPreviewProps {
   spec: WallpaperSpec | null
@@ -17,11 +18,7 @@ export function WallpaperPreview({ spec }: WallpaperPreviewProps) {
 
       <div className="wallpaper-frame">
         {spec ? (
-          <img
-            className="wallpaper-image"
-            src={spec.imageUrl}
-            alt="Uploaded wallpaper preview"
-          />
+          <WallpaperRenderer spec={spec} />
         ) : (
           <div className="wallpaper-empty">Upload an image to preview it.</div>
         )}

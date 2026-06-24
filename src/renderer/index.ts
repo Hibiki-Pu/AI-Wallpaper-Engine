@@ -1,1 +1,1 @@
-export {}
+export { WallpaperRenderer } from './WallpaperRenderer'
