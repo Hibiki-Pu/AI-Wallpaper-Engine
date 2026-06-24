@@ -26,7 +26,17 @@ export function FogEffect({ effect }: FogEffectProps) {
   }
 
   return (
-    <div className="effect-layer fog-layer" style={{ opacity: effect.opacity }} aria-hidden="true">
+    <div
+      className={`effect-layer fog-layer effect-variant-${effect.variant ?? 'soft_mist'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
+      aria-hidden="true"
+    >
       {fogBanks.map((fog) => (
         <span
           key={fog.id}

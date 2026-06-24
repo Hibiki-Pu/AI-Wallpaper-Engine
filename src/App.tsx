@@ -1,6 +1,7 @@
 import { WallpaperPreviewPage } from './pages/WallpaperPreviewPage'
 import { WallpaperStudioPage } from './pages/WallpaperStudioPage'
 import { I18nProvider } from './i18n'
+import { ThemeProvider } from './theme'
 import './App.css'
 
 function App() {
@@ -11,7 +12,11 @@ function App() {
       <WallpaperStudioPage />
     )
 
-  return <I18nProvider>{page}</I18nProvider>
+  return (
+    <I18nProvider>
+      <ThemeProvider>{page}</ThemeProvider>
+    </I18nProvider>
+  )
 }
 
 export default App

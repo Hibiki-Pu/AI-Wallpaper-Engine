@@ -6,9 +6,18 @@ export interface WallpaperSpec {
 }
 
 export interface WallpaperCameraSpec {
-  type: 'static' | 'ken_burns'
+  enabled?: boolean
+  type:
+    | 'static'
+    | 'slow_zoom_in'
+    | 'slow_zoom_out'
+    | 'pan_left'
+    | 'pan_right'
+    | 'breathing'
   zoom: number
   speed: number
+  direction?: 'left' | 'right' | 'in' | 'out'
+  intensity?: number
 }
 
 export interface WallpaperEffectSpec {
@@ -17,6 +26,11 @@ export interface WallpaperEffectSpec {
   count: number
   speed: number
   opacity: number
+  variant?: string
+  size?: number
+  blur?: number
+  color?: string
+  direction?: string
 }
 
 export type WallpaperEffectLayerType =
@@ -40,5 +54,10 @@ export interface WallpaperLayer {
     count?: number
     speed?: number
     opacity?: number
+    variant?: string
+    size?: number
+    blur?: number
+    color?: string
+    direction?: string
   }
 }

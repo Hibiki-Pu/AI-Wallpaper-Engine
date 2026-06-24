@@ -43,8 +43,15 @@ export function GlowParticlesEffect({ effect }: GlowParticlesEffectProps) {
 
   return (
     <div
-      className="effect-layer glow-particles-layer"
-      style={{ opacity: effect.opacity }}
+      className={`effect-layer glow-particles-layer effect-variant-${effect.variant ?? 'soft_glow'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+          '--effect-color': effect.color ?? 'rgba(216, 248, 255, 0.82)',
+        } as CSSProperties
+      }
       aria-hidden="true"
     >
       {particles.map((particle) => (

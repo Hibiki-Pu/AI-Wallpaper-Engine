@@ -31,7 +31,17 @@ export function StarsEffect({ effect }: StarsEffectProps) {
   }
 
   return (
-    <div className="effect-layer stars-layer" style={{ opacity: effect.opacity }} aria-hidden="true">
+    <div
+      className={`effect-layer stars-layer effect-variant-${effect.variant ?? 'twinkle'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
+      aria-hidden="true"
+    >
       {stars.map((star) => (
         <span
           key={star.id}

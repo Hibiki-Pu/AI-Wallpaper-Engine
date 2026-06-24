@@ -45,8 +45,14 @@ export function PetalsEffect({ effect }: PetalsEffectProps) {
 
   return (
     <div
-      className="effect-layer petals-layer"
-      style={{ opacity: effect.opacity }}
+      className={`effect-layer petals-layer effect-variant-${effect.variant ?? 'sakura'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
       aria-hidden="true"
     >
       {petals.map((petal) => (

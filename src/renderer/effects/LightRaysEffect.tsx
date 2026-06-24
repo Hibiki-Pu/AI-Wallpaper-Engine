@@ -27,7 +27,17 @@ export function LightRaysEffect({ effect }: LightRaysEffectProps) {
   }
 
   return (
-    <div className="effect-layer light-rays-layer" style={{ opacity: effect.opacity }} aria-hidden="true">
+    <div
+      className={`effect-layer light-rays-layer effect-variant-${effect.variant ?? 'morning_rays'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
+      aria-hidden="true"
+    >
       {rays.map((ray) => (
         <span
           key={ray.id}

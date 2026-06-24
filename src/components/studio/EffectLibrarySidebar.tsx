@@ -7,7 +7,11 @@ interface EffectLibrarySidebarProps {
   spec: WallpaperSpec | null
   selectedLayerId: string | null
   onEffectSelect: (type: WallpaperEffectLayerType) => void
-  onEffectToggle: (type: WallpaperEffectLayerType, enabled: boolean) => void
+  onEffectToggle: (
+    type: WallpaperEffectLayerType,
+    enabled: boolean,
+    variant?: string,
+  ) => void
 }
 
 export function EffectLibrarySidebar({
@@ -41,8 +45,8 @@ export function EffectLibrarySidebar({
               selected={selectedLayerId === effectLayer?.id}
               disabled={!spec}
               onSelect={() => onEffectSelect(effect.type)}
-              onToggle={(nextEnabled) =>
-                onEffectToggle(effect.type, nextEnabled)
+              onToggle={(nextEnabled, variant) =>
+                onEffectToggle(effect.type, nextEnabled, variant)
               }
             />
           )

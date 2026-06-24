@@ -32,7 +32,17 @@ export function FirefliesEffect({ effect }: FirefliesEffectProps) {
   }
 
   return (
-    <div className="effect-layer fireflies-layer" style={{ opacity: effect.opacity }} aria-hidden="true">
+    <div
+      className={`effect-layer fireflies-layer effect-variant-${effect.variant ?? 'warm_fireflies'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
+      aria-hidden="true"
+    >
       {fireflies.map((firefly) => (
         <span
           key={firefly.id}

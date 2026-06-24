@@ -10,6 +10,19 @@ type Language = 'en' | 'zh'
 
 type TranslationKey =
   | 'language'
+  | 'theme'
+  | 'camera'
+  | 'cameraMotion'
+  | 'cameraMode'
+  | 'zoom'
+  | 'intensity'
+  | 'variant'
+  | 'light'
+  | 'dark'
+  | 'openPanel'
+  | 'closePanel'
+  | 'showJson'
+  | 'hideJson'
   | 'library'
   | 'effects'
   | 'canvas'
@@ -70,6 +83,19 @@ type TranslationKey =
 const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
   en: {
     language: '中文',
+    theme: 'Theme',
+    camera: 'Camera',
+    cameraMotion: 'Camera Motion',
+    cameraMode: 'Mode',
+    zoom: 'zoom',
+    intensity: 'intensity',
+    variant: 'variant',
+    light: 'Light',
+    dark: 'Dark',
+    openPanel: 'Open inspector',
+    closePanel: 'Close inspector',
+    showJson: 'Show JSON',
+    hideJson: 'Hide JSON',
     library: 'Library',
     effects: 'Effects',
     canvas: 'Canvas',
@@ -129,6 +155,19 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
   },
   zh: {
     language: 'English',
+    theme: '主题',
+    camera: '镜头',
+    cameraMotion: '镜头运动',
+    cameraMode: '模式',
+    zoom: '缩放',
+    intensity: '强度',
+    variant: '样式',
+    light: '浅色',
+    dark: '深色',
+    openPanel: '展开检查器',
+    closePanel: '收起检查器',
+    showJson: '显示 JSON',
+    hideJson: '隐藏 JSON',
     library: '素材库',
     effects: '特效',
     canvas: '画布',

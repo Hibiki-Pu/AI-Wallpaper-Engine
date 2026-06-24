@@ -88,10 +88,23 @@ const createPackageHtml = () => `<!doctype html>
         transform: scale(1);
       }
 
-      .wallpaper-image.ken-burns {
-        animation: ken-burns var(--camera-duration) ease-in-out infinite alternate;
+      .wallpaper-image.camera-slow_zoom_in,
+      .wallpaper-image.camera-slow_zoom_out,
+      .wallpaper-image.camera-pan_left,
+      .wallpaper-image.camera-pan_right,
+      .wallpaper-image.camera-breathing {
+        animation-duration: var(--camera-duration);
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
         will-change: transform;
       }
+
+      .wallpaper-image.camera-slow_zoom_in { animation-name: camera-zoom-in; }
+      .wallpaper-image.camera-slow_zoom_out { animation-name: camera-zoom-out; }
+      .wallpaper-image.camera-pan_left { animation-name: camera-pan-left; }
+      .wallpaper-image.camera-pan_right { animation-name: camera-pan-right; }
+      .wallpaper-image.camera-breathing { animation-name: camera-breathing; }
 
       .effect-layer {
         position: absolute;
@@ -254,14 +267,29 @@ const createPackageHtml = () => `<!doctype html>
         font: 18px/1.5 system-ui, sans-serif;
       }
 
-      @keyframes ken-burns {
-        from {
-          transform: scale(1) translate3d(-0.4%, -0.4%, 0);
-        }
+      @keyframes camera-zoom-in {
+        from { transform: scale(1); }
+        to { transform: scale(var(--camera-zoom)); }
+      }
 
-        to {
-          transform: scale(var(--camera-zoom)) translate3d(0.6%, 0.5%, 0);
-        }
+      @keyframes camera-zoom-out {
+        from { transform: scale(var(--camera-zoom)); }
+        to { transform: scale(1); }
+      }
+
+      @keyframes camera-pan-left {
+        from { transform: scale(var(--camera-zoom)) translate3d(1.2%, 0, 0); }
+        to { transform: scale(var(--camera-zoom)) translate3d(-1.2%, 0, 0); }
+      }
+
+      @keyframes camera-pan-right {
+        from { transform: scale(var(--camera-zoom)) translate3d(-1.2%, 0, 0); }
+        to { transform: scale(var(--camera-zoom)) translate3d(1.2%, 0, 0); }
+      }
+
+      @keyframes camera-breathing {
+        from { transform: scale(1) translate3d(-0.2%, -0.2%, 0); }
+        to { transform: scale(var(--camera-zoom)) translate3d(0.2%, 0.2%, 0); }
       }
 
       @keyframes glow-float {
@@ -473,7 +501,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderGlowParticles = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer glow-particles-layer';
+        layer.className = 'effect-layer glow-particles-layer effect-variant-' + (effect.variant || 'soft_glow');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -493,7 +521,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderPetals = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer petals-layer';
+        layer.className = 'effect-layer petals-layer effect-variant-' + (effect.variant || 'sakura');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -514,7 +542,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderSnow = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer snow-layer';
+        layer.className = 'effect-layer snow-layer effect-variant-' + (effect.variant || 'light_snow');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -534,7 +562,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderRain = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer rain-layer';
+        layer.className = 'effect-layer rain-layer effect-variant-' + (effect.variant || 'drizzle');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -553,7 +581,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderFireflies = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer fireflies-layer';
+        layer.className = 'effect-layer fireflies-layer effect-variant-' + (effect.variant || 'warm_fireflies');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -574,7 +602,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderFog = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer fog-layer';
+        layer.className = 'effect-layer fog-layer effect-variant-' + (effect.variant || 'soft_mist');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -593,7 +621,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderLightRays = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer light-rays-layer';
+        layer.className = 'effect-layer light-rays-layer effect-variant-' + (effect.variant || 'morning_rays');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -613,7 +641,7 @@ const createPackageHtml = () => `<!doctype html>
 
       const renderStars = (effect) => {
         const layer = document.createElement('div');
-        layer.className = 'effect-layer stars-layer';
+        layer.className = 'effect-layer stars-layer effect-variant-' + (effect.variant || 'twinkle');
         layer.style.opacity = effect.opacity;
 
         for (let index = 0; index < effect.count; index += 1) {
@@ -642,6 +670,7 @@ const createPackageHtml = () => `<!doctype html>
           count: layer.settings.count || 0,
           speed: layer.settings.speed || 1,
           opacity: layer.settings.opacity || 0,
+          variant: layer.settings.variant,
           zIndex: layer.zIndex,
         };
       };
@@ -674,8 +703,8 @@ const createPackageHtml = () => `<!doctype html>
           Math.max(6, 28 - spec.camera.speed * 4) + 's',
         );
 
-        if (spec.camera.type === 'ken_burns') {
-          image.classList.add('ken-burns');
+        if ((spec.camera.enabled || spec.camera.type !== 'static') && spec.camera.type !== 'static') {
+          image.classList.add('camera-' + spec.camera.type);
         }
 
         wallpaper.append(image);

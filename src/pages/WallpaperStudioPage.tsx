@@ -3,8 +3,10 @@ import { ExportPanel } from '../components/ExportPanel'
 import { EffectLibrarySidebar } from '../components/studio/EffectLibrarySidebar'
 import { InspectorPanel } from '../components/studio/InspectorPanel'
 import { LayerPanel } from '../components/studio/LayerPanel'
+import { CameraPanel } from '../components/studio/CameraPanel'
 import { WallpaperCanvas } from '../components/studio/WallpaperCanvas'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
+import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
 import { saveWallpaperPreviewSpec } from '../services/wallpaperPreviewStorage'
 import type {
   WallpaperEffectLayerType,
@@ -15,6 +17,45 @@ import type {
 import { useI18n } from '../i18n'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
+
+const translateEffectLibrary = (
+  t: ReturnType<typeof useI18n>['t'],
+): EffectLibraryItem[] =>
+  BASE_EFFECT_LIBRARY.map((effect) => ({
+    ...effect,
+    name:
+      effect.type === 'glow_particles'
+        ? t('glowParticles')
+        : effect.type === 'petals'
+          ? t('petals')
+          : effect.type === 'snow'
+            ? t('snow')
+            : effect.type === 'rain'
+              ? t('rain')
+              : effect.type === 'fireflies'
+                ? t('fireflies')
+                : effect.type === 'fog'
+                  ? t('fog')
+                  : effect.type === 'light_rays'
+                    ? t('lightRays')
+                    : t('stars'),
+    description:
+      effect.type === 'glow_particles'
+        ? t('glowParticlesDesc')
+        : effect.type === 'petals'
+          ? t('petalsDesc')
+          : effect.type === 'snow'
+            ? t('snowDesc')
+            : effect.type === 'rain'
+              ? t('rainDesc')
+              : effect.type === 'fireflies'
+                ? t('firefliesDesc')
+                : effect.type === 'fog'
+                  ? t('fogDesc')
+                  : effect.type === 'light_rays'
+                    ? t('lightRaysDesc')
+                    : t('starsDesc'),
+  }))
 
 const EFFECT_PRESETS: Record<
   ScenePreset,
@@ -90,41 +131,49 @@ const EFFECT_LIBRARY: EffectLibraryItem[] = [
     type: 'glow_particles',
     name: 'Glow Particles',
     description: 'Soft drifting light points for a gentle magical layer.',
+    icon: '✨',
   },
   {
     type: 'petals',
     name: 'Petals',
     description: 'Slow falling petal shapes for calm nature motion.',
+    icon: '🌸',
   },
   {
     type: 'snow',
     name: 'Snow',
     description: 'Light flakes falling across the wallpaper.',
+    icon: '❄️',
   },
   {
     type: 'rain',
     name: 'Rain',
     description: 'Fast diagonal drops for a rainy ambience.',
+    icon: '🌧️',
   },
   {
     type: 'fireflies',
     name: 'Fireflies',
     description: 'Warm wandering sparks near the lower scene.',
+    icon: '🟡',
   },
   {
     type: 'fog',
     name: 'Fog',
     description: 'Wide drifting mist layers for atmospheric depth.',
+    icon: '🌫️',
   },
   {
     type: 'light_rays',
     name: 'Light Rays',
     description: 'Soft beams sweeping through the canvas.',
+    icon: '☀️',
   },
   {
     type: 'stars',
     name: 'Stars',
     description: 'Subtle twinkling points for night scenes.',
+    icon: '⭐',
   },
 ]
 
@@ -135,49 +184,60 @@ const createEffectLibrary = (
     type: 'glow_particles',
     name: t('glowParticles'),
     description: t('glowParticlesDesc'),
+    icon: '✨',
   },
   {
     type: 'petals',
     name: t('petals'),
     description: t('petalsDesc'),
+    icon: '🌸',
   },
   {
     type: 'snow',
     name: t('snow'),
     description: t('snowDesc'),
+    icon: '❄️',
   },
   {
     type: 'rain',
     name: t('rain'),
     description: t('rainDesc'),
+    icon: '🌧️',
   },
   {
     type: 'fireflies',
     name: t('fireflies'),
     description: t('firefliesDesc'),
+    icon: '🟡',
   },
   {
     type: 'fog',
     name: t('fog'),
     description: t('fogDesc'),
+    icon: '🌫️',
   },
   {
     type: 'light_rays',
     name: t('lightRays'),
     description: t('lightRaysDesc'),
+    icon: '☀️',
   },
   {
     type: 'stars',
     name: t('stars'),
     description: t('starsDesc'),
+    icon: '⭐',
   },
 ]
 
 const createLayerId = (type: WallpaperLayer['type']) =>
   `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
+void EFFECT_LIBRARY
+void createEffectLibrary
+
 const getEffectName = (type: WallpaperEffectLayerType) =>
-  EFFECT_LIBRARY.find((effect) => effect.type === type)?.name ?? type
+  BASE_EFFECT_LIBRARY.find((effect) => effect.type === type)?.name ?? type
 
 const getPresetConfig = (
   type: WallpaperEffectLayerType,
@@ -199,8 +259,11 @@ const createEffectLayer = (
   preset: ScenePreset,
   zIndex: number,
   visible = true,
+  variant?: string,
 ): WallpaperLayer => {
   const config = getPresetConfig(type, preset)
+  const defaultVariant =
+    variant ?? BASE_EFFECT_LIBRARY.find((effect) => effect.type === type)?.variants?.[0]
 
   return {
     id: createLayerId(type),
@@ -213,6 +276,9 @@ const createEffectLayer = (
       count: config.count,
       speed: config.speed,
       opacity: config.opacity,
+      variant: defaultVariant,
+      size: 1,
+      blur: 0,
     },
   }
 }
@@ -229,6 +295,11 @@ const layersToEffects = (layers: WallpaperLayer[]): WallpaperEffectSpec[] =>
       count: layer.settings.count ?? 0,
       speed: layer.settings.speed ?? 1,
       opacity: layer.settings.opacity ?? 0,
+      variant: layer.settings.variant,
+      size: layer.settings.size,
+      blur: layer.settings.blur,
+      color: layer.settings.color,
+      direction: layer.settings.direction,
     }))
 
 const normalizeLayerOrder = (layers: WallpaperLayer[]): WallpaperLayer[] =>
@@ -261,9 +332,12 @@ const createDefaultWallpaperSpec = (
   return withSyncedEffects({
     imageUrl,
     camera: {
-      type: 'ken_burns',
-      zoom: 1.06,
+      enabled: false,
+      type: 'static',
+      zoom: 1,
       speed: 1,
+      direction: 'in',
+      intensity: 1,
     },
     effects: [],
     layers,
@@ -297,11 +371,12 @@ const applyPresetToSpec = (
 
 export function WallpaperStudioPage() {
   const { t } = useI18n()
-  const effectLibrary = createEffectLibrary(t)
+  const effectLibrary = translateEffectLibrary(t)
   const [wallpaperSpec, setWallpaperSpec] = useState<WallpaperSpec | null>(null)
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null)
   const [preset, setPreset] = useState<ScenePreset>('dreamy')
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false)
 
   const handleImageSelected = (file: File) => {
     const imageUrl = URL.createObjectURL(file)
@@ -325,6 +400,7 @@ export function WallpaperStudioPage() {
   const handleEffectToggle = (
     type: WallpaperEffectLayerType,
     enabled: boolean,
+    variant?: string,
   ) => {
     setWallpaperSpec((currentSpec) => {
       if (!currentSpec) {
@@ -348,7 +424,7 @@ export function WallpaperStudioPage() {
 
       const nextZIndex =
         Math.max(...currentSpec.layers.map((layer) => layer.zIndex), 0) + 1
-      const nextLayer = createEffectLayer(type, preset, nextZIndex)
+      const nextLayer = createEffectLayer(type, preset, nextZIndex, true, variant)
       setSelectedLayerId(nextLayer.id)
 
       return withSyncedEffects({
@@ -463,6 +539,20 @@ export function WallpaperStudioPage() {
     })
   }
 
+  const handleCameraChange = (patch: Partial<WallpaperSpec['camera']>) => {
+    setWallpaperSpec((currentSpec) =>
+      currentSpec
+        ? {
+            ...currentSpec,
+            camera: {
+              ...currentSpec.camera,
+              ...patch,
+            },
+          }
+        : currentSpec,
+    )
+  }
+
   const handleOpenPreview = () => {
     if (!wallpaperSpec) {
       return
@@ -507,7 +597,20 @@ export function WallpaperStudioPage() {
         />
       </section>
 
-      <aside className="studio-inspector-column">
+      <aside
+        className={`studio-inspector-column ${
+          isInspectorOpen ? 'open' : 'collapsed'
+        }`}
+      >
+        <button
+          type="button"
+          className="inspector-collapse-button"
+          onClick={() => setIsInspectorOpen((isOpen) => !isOpen)}
+        >
+          {isInspectorOpen ? t('closePanel') : t('openPanel')}
+        </button>
+
+        <div className="inspector-content">
         {wallpaperSpec && (
           <LayerPanel
             layers={wallpaperSpec.layers}
@@ -518,6 +621,11 @@ export function WallpaperStudioPage() {
             onMoveLayer={handleMoveLayer}
           />
         )}
+
+        <CameraPanel
+          camera={wallpaperSpec?.camera ?? null}
+          onCameraChange={handleCameraChange}
+        />
 
         <section className="preset-panel" aria-label="Scene presets">
           <p className="panel-kicker">{t('presets')}</p>
@@ -542,6 +650,7 @@ export function WallpaperStudioPage() {
           onEffectChange={handleInspectorLayerChange}
         />
         <ExportPanel spec={wallpaperSpec} />
+        </div>
       </aside>
     </main>
   )

@@ -16,6 +16,7 @@ export function ExportPanel({ spec }: ExportPanelProps) {
   const [copyStatus, setCopyStatus] = useState('')
   const [exportStatus, setExportStatus] = useState('')
   const [isExportingPackage, setIsExportingPackage] = useState(false)
+  const [isJsonVisible, setIsJsonVisible] = useState(false)
   const specJson = useMemo(
     () => (spec ? serializeWallpaperSpec(spec) : ''),
     [spec],
@@ -90,9 +91,20 @@ export function ExportPanel({ spec }: ExportPanelProps) {
         </div>
       </div>
 
-      <pre className="spec-json" aria-live="polite">
-        {specJson || t('emptySpec')}
-      </pre>
+      <button
+        type="button"
+        className="json-toggle-button"
+        disabled={!spec}
+        onClick={() => setIsJsonVisible((isVisible) => !isVisible)}
+      >
+        {isJsonVisible ? t('hideJson') : t('showJson')}
+      </button>
+
+      {isJsonVisible && (
+        <pre className="spec-json" aria-live="polite">
+          {specJson || t('emptySpec')}
+        </pre>
+      )}
       <div className="copy-status" aria-live="polite">
         {exportStatus || copyStatus}
       </div>

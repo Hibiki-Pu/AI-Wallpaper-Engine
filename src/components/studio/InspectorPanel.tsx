@@ -65,6 +65,28 @@ export function InspectorPanel({
       {!isBackground && (
         <>
           <label className="inspector-field">
+            <span>{t('variant')}</span>
+            <select
+              disabled={layer.locked}
+              value={layer.settings.variant ?? metadata?.variants?.[0] ?? 'default'}
+              onChange={(event) =>
+                onEffectChange(layer.id, {
+                  settings: {
+                    ...layer.settings,
+                    variant: event.target.value,
+                  },
+                })
+              }
+            >
+              {(metadata?.variants ?? ['default']).map((variant) => (
+                <option key={variant} value={variant}>
+                  {variant}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="inspector-field">
             <span>{t('count')}</span>
             <input
               type="number"

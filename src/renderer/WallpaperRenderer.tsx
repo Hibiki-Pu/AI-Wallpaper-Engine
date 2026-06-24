@@ -48,12 +48,19 @@ const layerToEffect = (layer: WallpaperLayer): WallpaperEffectSpec | null => {
     enabled: layer.visible,
     count: layer.settings.count ?? 0,
     speed: layer.settings.speed ?? 1,
-    opacity: layer.settings.opacity ?? 0,
+      opacity: layer.settings.opacity ?? 0,
+      variant: layer.settings.variant,
+      size: layer.settings.size,
+      blur: layer.settings.blur,
+      color: layer.settings.color,
+      direction: layer.settings.direction,
   }
 }
 
 export function WallpaperRenderer({ spec }: WallpaperRendererProps) {
-  const shouldAnimateCamera = spec.camera.type === 'ken_burns'
+  const shouldAnimateCamera =
+    (spec.camera.enabled ?? spec.camera.type !== 'static') &&
+    spec.camera.type !== 'static'
   const layers = spec.layers?.length
     ? [...spec.layers].sort((a, b) => a.zIndex - b.zIndex)
     : []
@@ -66,7 +73,7 @@ export function WallpaperRenderer({ spec }: WallpaperRendererProps) {
         <img
           className={
             shouldAnimateCamera
-              ? 'wallpaper-image wallpaper-image-ken-burns'
+              ? `wallpaper-image wallpaper-camera-${spec.camera.type}`
               : 'wallpaper-image'
           }
           src={spec.imageUrl}
@@ -74,6 +81,7 @@ export function WallpaperRenderer({ spec }: WallpaperRendererProps) {
           style={
             {
               '--camera-zoom': spec.camera.zoom,
+              '--camera-intensity': spec.camera.intensity ?? 1,
               '--camera-duration': `${Math.max(6, 28 - spec.camera.speed * 4)}s`,
               zIndex: backgroundLayer?.zIndex ?? 0,
             } as CSSProperties

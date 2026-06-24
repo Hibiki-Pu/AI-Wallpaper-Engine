@@ -31,7 +31,17 @@ export function SnowEffect({ effect }: SnowEffectProps) {
   }
 
   return (
-    <div className="effect-layer snow-layer" style={{ opacity: effect.opacity }} aria-hidden="true">
+    <div
+      className={`effect-layer snow-layer effect-variant-${effect.variant ?? 'light_snow'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
+      aria-hidden="true"
+    >
       {flakes.map((flake) => (
         <span
           key={flake.id}

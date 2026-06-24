@@ -30,7 +30,17 @@ export function RainEffect({ effect }: RainEffectProps) {
   }
 
   return (
-    <div className="effect-layer rain-layer" style={{ opacity: effect.opacity }} aria-hidden="true">
+    <div
+      className={`effect-layer rain-layer effect-variant-${effect.variant ?? 'drizzle'}`}
+      style={
+        {
+          opacity: effect.opacity,
+          '--effect-size': effect.size ?? 1,
+          '--effect-blur': `${effect.blur ?? 0}px`,
+        } as CSSProperties
+      }
+      aria-hidden="true"
+    >
       {drops.map((drop) => (
         <span
           key={drop.id}

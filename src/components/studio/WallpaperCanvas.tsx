@@ -2,6 +2,7 @@ import { ImageUploader } from '../ImageUploader'
 import { WallpaperRenderer } from '../../renderer/WallpaperRenderer'
 import type { WallpaperSpec } from '../../types/WallpaperSpec'
 import { LanguageToggle } from '../LanguageToggle'
+import { ThemeToggle } from '../ThemeToggle'
 import { useI18n } from '../../i18n'
 
 interface WallpaperCanvasProps {
@@ -26,6 +27,7 @@ export function WallpaperCanvas({
         </div>
         <div className="canvas-actions">
           <LanguageToggle />
+          <ThemeToggle />
           <button
             type="button"
             className="open-preview-button"
