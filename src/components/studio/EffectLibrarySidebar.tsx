@@ -1,6 +1,7 @@
 import type { WallpaperEffectLayerType, WallpaperSpec } from '../../types/WallpaperSpec'
 import { EffectCard, type EffectLibraryItem } from './EffectCard'
 import { useI18n } from '../../i18n'
+import type { EffectIntensity } from '../../config/effectPresets'
 
 interface EffectLibrarySidebarProps {
   effects: EffectLibraryItem[]
@@ -12,6 +13,14 @@ interface EffectLibrarySidebarProps {
     enabled: boolean,
     variant?: string,
   ) => void
+  getEffectIntensity: (
+    type: WallpaperEffectLayerType,
+  ) => EffectIntensity | 'custom'
+  onEffectIntensityChange: (
+    type: WallpaperEffectLayerType,
+    intensity: EffectIntensity,
+  ) => void
+  onEffectAdvanced: (type: WallpaperEffectLayerType) => void
 }
 
 export function EffectLibrarySidebar({
@@ -20,10 +29,15 @@ export function EffectLibrarySidebar({
   selectedLayerId,
   onEffectSelect,
   onEffectToggle,
+  getEffectIntensity,
+  onEffectIntensityChange,
+  onEffectAdvanced,
 }: EffectLibrarySidebarProps) {
   const { t } = useI18n()
   const findLayer = (type: WallpaperEffectLayerType) =>
-    spec?.layers.find((layer) => layer.type === type)
+    spec?.layers
+      .filter((layer) => layer.type === type)
+      .sort((a, b) => b.zIndex - a.zIndex)[0]
 
   return (
     <aside className="effect-library-sidebar" aria-label="Effect library">
@@ -44,10 +58,15 @@ export function EffectLibrarySidebar({
               enabled={enabled}
               selected={selectedLayerId === effectLayer?.id}
               disabled={!spec}
+              intensity={getEffectIntensity(effect.type)}
               onSelect={() => onEffectSelect(effect.type)}
               onToggle={(nextEnabled, variant) =>
                 onEffectToggle(effect.type, nextEnabled, variant)
               }
+              onIntensityChange={(intensity) =>
+                onEffectIntensityChange(effect.type, intensity)
+              }
+              onAdvanced={() => onEffectAdvanced(effect.type)}
             />
           )
         })}

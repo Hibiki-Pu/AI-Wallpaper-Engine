@@ -146,6 +146,73 @@ export function InspectorPanel({
             />
             <output>{(layer.settings.opacity ?? 0).toFixed(2)}</output>
           </label>
+
+          <label className="inspector-field">
+            <span>{t('size')}</span>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.05"
+              disabled={layer.locked}
+              value={layer.settings.size ?? 1}
+              onChange={(event) =>
+                onEffectChange(layer.id, {
+                  settings: {
+                    ...layer.settings,
+                    size: Number(event.target.value),
+                  },
+                })
+              }
+            />
+            <output>{(layer.settings.size ?? 1).toFixed(2)}</output>
+          </label>
+
+          <label className="inspector-field">
+            <span>{t('blur')}</span>
+            <input
+              type="range"
+              min="0"
+              max="8"
+              step="0.25"
+              disabled={layer.locked}
+              value={layer.settings.blur ?? 0}
+              onChange={(event) =>
+                onEffectChange(layer.id, {
+                  settings: {
+                    ...layer.settings,
+                    blur: Number(event.target.value),
+                  },
+                })
+              }
+            />
+            <output>{(layer.settings.blur ?? 0).toFixed(2)}</output>
+          </label>
+
+          <label className="inspector-field">
+            <span>{t('direction')}</span>
+            <select
+              disabled={layer.locked}
+              value={layer.settings.direction ?? 'default'}
+              onChange={(event) =>
+                onEffectChange(layer.id, {
+                  settings: {
+                    ...layer.settings,
+                    direction:
+                      event.target.value === 'default'
+                        ? undefined
+                        : event.target.value,
+                  },
+                })
+              }
+            >
+              <option value="default">default</option>
+              <option value="left">left</option>
+              <option value="right">right</option>
+              <option value="up">up</option>
+              <option value="down">down</option>
+            </select>
+          </label>
         </>
       )}
     </section>

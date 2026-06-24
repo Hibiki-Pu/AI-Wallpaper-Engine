@@ -7,6 +7,12 @@ import { CameraPanel } from '../components/studio/CameraPanel'
 import { WallpaperCanvas } from '../components/studio/WallpaperCanvas'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
 import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
+import { AccordionSection } from '../components/studio/AccordionSection'
+import {
+  detectEffectIntensity,
+  getEffectIntensityPreset,
+  type EffectIntensity,
+} from '../config/effectPresets'
 import { saveWallpaperPreviewSpec } from '../services/wallpaperPreviewStorage'
 import type {
   WallpaperEffectLayerType,
@@ -17,6 +23,17 @@ import type {
 import { useI18n } from '../i18n'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
+
+type InspectorSection = 'camera' | 'presets' | 'layers' | 'selectedLayer' | 'export'
+
+const PRESET_DESCRIPTIONS: Record<ScenePreset, string> = {
+  dreamy: 'Petals, glow and light rays for a soft atmosphere.',
+  nature: 'Petals, fireflies, fog and rays for outdoor scenes.',
+  winter: 'Snow and fog for cold quiet wallpapers.',
+  rainy: 'Rain and fog for moody wet scenes.',
+  fantasy: 'Glow, petals, fireflies, fog and beams.',
+  night: 'Stars and glow particles for dark wallpapers.',
+}
 
 const translateEffectLibrary = (
   t: ReturnType<typeof useI18n>['t'],
@@ -376,7 +393,29 @@ export function WallpaperStudioPage() {
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null)
   const [preset, setPreset] = useState<ScenePreset>('dreamy')
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
-  const [isInspectorOpen, setIsInspectorOpen] = useState(false)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true)
+  const [openSections, setOpenSections] = useState<
+    Record<InspectorSection, boolean>
+  >({
+    camera: true,
+    presets: false,
+    layers: false,
+    selectedLayer: true,
+    export: false,
+  })
+  const [quickSelections, setQuickSelections] = useState<
+    Partial<
+      Record<
+        WallpaperEffectLayerType,
+        { intensity: EffectIntensity; variant?: string }
+      >
+    >
+  >({})
+
+  const findLatestEffectLayer = (type: WallpaperEffectLayerType) =>
+    wallpaperSpec?.layers
+      .filter((layer) => layer.type === type)
+      .sort((a, b) => b.zIndex - a.zIndex)[0] ?? null
 
   const handleImageSelected = (file: File) => {
     const imageUrl = URL.createObjectURL(file)
@@ -393,7 +432,7 @@ export function WallpaperStudioPage() {
   }
 
   const handleEffectSelect = (type: WallpaperEffectLayerType) => {
-    const layer = wallpaperSpec?.layers.find((item) => item.type === type)
+    const layer = findLatestEffectLayer(type)
     setSelectedLayerId(layer?.id ?? null)
   }
 
@@ -422,9 +461,45 @@ export function WallpaperStudioPage() {
         return withSyncedEffects({ ...currentSpec, layers: nextLayers })
       }
 
+      const existingLayer = [...currentSpec.layers]
+        .reverse()
+        .find((layer) => layer.type === type)
+
+      if (existingLayer) {
+        return withSyncedEffects({
+          ...currentSpec,
+          layers: currentSpec.layers.map((layer) =>
+            layer.id === existingLayer.id
+              ? {
+                  ...layer,
+                  visible: true,
+                  settings: {
+                    ...layer.settings,
+                    ...(variant ? { variant } : {}),
+                  },
+                }
+              : layer,
+          ),
+        })
+      }
+
+      const selectedQuick = quickSelections[type]
+      const selectedIntensity = selectedQuick?.intensity ?? 'medium'
+      const intensityPreset = getEffectIntensityPreset(type, selectedIntensity)
       const nextZIndex =
         Math.max(...currentSpec.layers.map((layer) => layer.zIndex), 0) + 1
-      const nextLayer = createEffectLayer(type, preset, nextZIndex, true, variant)
+      const nextLayer = createEffectLayer(
+        type,
+        preset,
+        nextZIndex,
+        true,
+        variant ?? selectedQuick?.variant ?? intensityPreset.variant,
+      )
+      nextLayer.settings = {
+        ...nextLayer.settings,
+        ...intensityPreset,
+        variant: variant ?? selectedQuick?.variant ?? intensityPreset.variant,
+      }
       setSelectedLayerId(nextLayer.id)
 
       return withSyncedEffects({
@@ -432,6 +507,76 @@ export function WallpaperStudioPage() {
         layers: [...currentSpec.layers, nextLayer],
       })
     })
+  }
+
+  const getEffectIntensity = (
+    type: WallpaperEffectLayerType,
+  ): EffectIntensity | 'custom' => {
+    const layer = findLatestEffectLayer(type)
+
+    if (!layer) {
+      return quickSelections[type]?.intensity ?? 'medium'
+    }
+
+    return detectEffectIntensity(type, layer.settings)
+  }
+
+  const handleEffectIntensityChange = (
+    type: WallpaperEffectLayerType,
+    intensity: EffectIntensity,
+  ) => {
+    const intensityPreset = getEffectIntensityPreset(type, intensity)
+    setQuickSelections((currentSelections) => ({
+      ...currentSelections,
+      [type]: {
+        intensity,
+        variant: intensityPreset.variant,
+      },
+    }))
+
+    setWallpaperSpec((currentSpec) => {
+      if (!currentSpec) {
+        return currentSpec
+      }
+
+      const targetLayer = [...currentSpec.layers]
+        .reverse()
+        .find((layer) => layer.type === type)
+
+      if (!targetLayer) {
+        return currentSpec
+      }
+
+      return withSyncedEffects({
+        ...currentSpec,
+        layers: currentSpec.layers.map((layer) =>
+          layer.id === targetLayer.id
+            ? {
+                ...layer,
+                settings: {
+                  ...layer.settings,
+                  ...intensityPreset,
+                },
+              }
+            : layer,
+        ),
+      })
+    })
+  }
+
+  const handleEffectAdvanced = (type: WallpaperEffectLayerType) => {
+    const layer = findLatestEffectLayer(type)
+
+    if (!layer) {
+      return
+    }
+
+    setSelectedLayerId(layer.id)
+    setIsInspectorOpen(true)
+    setOpenSections((currentSections) => ({
+      ...currentSections,
+      selectedLayer: true,
+    }))
   }
 
   const handleLayerChange = (
@@ -553,6 +698,13 @@ export function WallpaperStudioPage() {
     )
   }
 
+  const toggleSection = (section: InspectorSection) => {
+    setOpenSections((currentSections) => ({
+      ...currentSections,
+      [section]: !currentSections[section],
+    }))
+  }
+
   const handleOpenPreview = () => {
     if (!wallpaperSpec) {
       return
@@ -587,6 +739,9 @@ export function WallpaperStudioPage() {
         selectedLayerId={selectedLayerId}
         onEffectSelect={handleEffectSelect}
         onEffectToggle={handleEffectToggle}
+        getEffectIntensity={getEffectIntensity}
+        onEffectIntensityChange={handleEffectIntensityChange}
+        onEffectAdvanced={handleEffectAdvanced}
       />
 
       <section className="studio-canvas-column">
@@ -602,54 +757,97 @@ export function WallpaperStudioPage() {
           isInspectorOpen ? 'open' : 'collapsed'
         }`}
       >
-        <button
-          type="button"
-          className="inspector-collapse-button"
-          onClick={() => setIsInspectorOpen((isOpen) => !isOpen)}
-        >
-          {isInspectorOpen ? t('closePanel') : t('openPanel')}
-        </button>
+        <div className="inspector-topbar">
+          <button
+            type="button"
+            className="inspector-collapse-button"
+            onClick={() => setIsInspectorOpen((isOpen) => !isOpen)}
+          >
+            {isInspectorOpen ? t('closePanel') : t('openPanel')}
+          </button>
+        </div>
 
         <div className="inspector-content">
-        {wallpaperSpec && (
-          <LayerPanel
-            layers={wallpaperSpec.layers}
-            selectedLayerId={selectedLayerId}
-            onLayerSelect={handleLayerSelect}
-            onLayerChange={handleLayerChange}
-            onLayerDelete={handleLayerDelete}
-            onMoveLayer={handleMoveLayer}
-          />
-        )}
+          <AccordionSection
+            title={t('camera')}
+            open={openSections.camera}
+            onToggle={() => toggleSection('camera')}
+          >
+            <CameraPanel
+              camera={wallpaperSpec?.camera ?? null}
+              onCameraChange={handleCameraChange}
+            />
+          </AccordionSection>
 
-        <CameraPanel
-          camera={wallpaperSpec?.camera ?? null}
-          onCameraChange={handleCameraChange}
-        />
+          <AccordionSection
+            title={t('presets')}
+            open={openSections.presets}
+            onToggle={() => toggleSection('presets')}
+          >
+            <div className="preset-card-list">
+              {Object.keys(EFFECT_PRESETS).map((presetName) => {
+                const scenePreset = presetName as ScenePreset
 
-        <section className="preset-panel" aria-label="Scene presets">
-          <p className="panel-kicker">{t('presets')}</p>
-          <div className="preset-control">
-            {Object.keys(EFFECT_PRESETS).map((presetName) => (
-              <button
-                key={presetName}
-                type="button"
-                disabled={!wallpaperSpec}
-                className={preset === presetName ? 'active' : ''}
-                onClick={() => handlePresetChange(presetName as ScenePreset)}
-              >
-                {presetName}
-              </button>
-            ))}
-          </div>
-        </section>
+                return (
+                  <article
+                    className={`preset-card ${
+                      preset === scenePreset ? 'active' : ''
+                    }`}
+                    key={presetName}
+                  >
+                    <div>
+                      <h3>{presetName}</h3>
+                      <p>{PRESET_DESCRIPTIONS[scenePreset]}</p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!wallpaperSpec}
+                      onClick={() => handlePresetChange(scenePreset)}
+                    >
+                      {t('apply')}
+                    </button>
+                  </article>
+                )
+              })}
+            </div>
+          </AccordionSection>
 
-        <InspectorPanel
-          layer={selectedLayer}
-          metadata={selectedEffectMetadata}
-          onEffectChange={handleInspectorLayerChange}
-        />
-        <ExportPanel spec={wallpaperSpec} />
+          <AccordionSection
+            title={t('layers')}
+            open={openSections.layers}
+            onToggle={() => toggleSection('layers')}
+          >
+            {wallpaperSpec && (
+              <LayerPanel
+                layers={wallpaperSpec.layers}
+                selectedLayerId={selectedLayerId}
+                onLayerSelect={handleLayerSelect}
+                onLayerChange={handleLayerChange}
+                onLayerDelete={handleLayerDelete}
+                onMoveLayer={handleMoveLayer}
+              />
+            )}
+          </AccordionSection>
+
+          <AccordionSection
+            title={t('selectedLayer')}
+            open={openSections.selectedLayer}
+            onToggle={() => toggleSection('selectedLayer')}
+          >
+            <InspectorPanel
+              layer={selectedLayer}
+              metadata={selectedEffectMetadata}
+              onEffectChange={handleInspectorLayerChange}
+            />
+          </AccordionSection>
+
+          <AccordionSection
+            title={t('projectPackage')}
+            open={openSections.export}
+            onToggle={() => toggleSection('export')}
+          >
+            <ExportPanel spec={wallpaperSpec} />
+          </AccordionSection>
         </div>
       </aside>
     </main>

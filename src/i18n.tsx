@@ -16,6 +16,11 @@ type TranslationKey =
   | 'cameraMode'
   | 'zoom'
   | 'intensity'
+  | 'weak'
+  | 'medium'
+  | 'strong'
+  | 'custom'
+  | 'advanced'
   | 'variant'
   | 'light'
   | 'dark'
@@ -23,6 +28,8 @@ type TranslationKey =
   | 'closePanel'
   | 'showJson'
   | 'hideJson'
+  | 'selectedLayer'
+  | 'apply'
   | 'library'
   | 'effects'
   | 'canvas'
@@ -52,6 +59,9 @@ type TranslationKey =
   | 'count'
   | 'speed'
   | 'opacity'
+  | 'size'
+  | 'blur'
+  | 'direction'
   | 'projectPackage'
   | 'copySpecJson'
   | 'downloadSpecJson'
@@ -89,6 +99,11 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     cameraMode: 'Mode',
     zoom: 'zoom',
     intensity: 'intensity',
+    weak: 'Weak',
+    medium: 'Medium',
+    strong: 'Strong',
+    custom: 'Custom',
+    advanced: 'Advanced',
     variant: 'variant',
     light: 'Light',
     dark: 'Dark',
@@ -96,6 +111,8 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     closePanel: 'Close inspector',
     showJson: 'Show JSON',
     hideJson: 'Hide JSON',
+    selectedLayer: 'Selected Layer',
+    apply: 'Apply',
     library: 'Library',
     effects: 'Effects',
     canvas: 'Canvas',
@@ -125,6 +142,9 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     count: 'count',
     speed: 'speed',
     opacity: 'opacity',
+    size: 'size',
+    blur: 'blur',
+    direction: 'direction',
     projectPackage: 'Project package',
     copySpecJson: 'Copy Spec JSON',
     downloadSpecJson: 'Download wallpaperSpec.json',
@@ -161,6 +181,11 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     cameraMode: '模式',
     zoom: '缩放',
     intensity: '强度',
+    weak: '弱',
+    medium: '中',
+    strong: '强',
+    custom: '自定义',
+    advanced: '高级',
     variant: '样式',
     light: '浅色',
     dark: '深色',
@@ -168,6 +193,8 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     closePanel: '收起检查器',
     showJson: '显示 JSON',
     hideJson: '隐藏 JSON',
+    selectedLayer: '选中图层',
+    apply: '应用',
     library: '素材库',
     effects: '特效',
     canvas: '画布',
@@ -197,6 +224,9 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     count: '数量',
     speed: '速度',
     opacity: '透明度',
+    size: '大小',
+    blur: '模糊',
+    direction: '方向',
     projectPackage: '项目包',
     copySpecJson: '复制 Spec JSON',
     downloadSpecJson: '下载 wallpaperSpec.json',
