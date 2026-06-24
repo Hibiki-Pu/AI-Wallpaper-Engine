@@ -5,9 +5,11 @@ import { InspectorPanel } from '../components/studio/InspectorPanel'
 import { LayerPanel } from '../components/studio/LayerPanel'
 import { CameraPanel } from '../components/studio/CameraPanel'
 import { WallpaperCanvas } from '../components/studio/WallpaperCanvas'
+import { StyleCaseLibrary } from '../components/studio/StyleCaseLibrary'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
 import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
 import { AccordionSection } from '../components/studio/AccordionSection'
+import { STYLE_CASES } from '../config/styleCases'
 import {
   detectEffectIntensity,
   getEffectIntensityPreset,
@@ -20,20 +22,12 @@ import type {
   WallpaperLayer,
   WallpaperSpec,
 } from '../types/WallpaperSpec'
+import type { StyleCase } from '../types/StyleCase'
 import { useI18n } from '../i18n'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
 
 type InspectorSection = 'camera' | 'presets' | 'layers' | 'selectedLayer' | 'export'
-
-const PRESET_DESCRIPTIONS: Record<ScenePreset, string> = {
-  dreamy: 'Petals, glow and light rays for a soft atmosphere.',
-  nature: 'Petals, fireflies, fog and rays for outdoor scenes.',
-  winter: 'Snow and fog for cold quiet wallpapers.',
-  rainy: 'Rain and fog for moody wet scenes.',
-  fantasy: 'Glow, petals, fireflies, fog and beams.',
-  night: 'Stars and glow particles for dark wallpapers.',
-}
 
 const translateEffectLibrary = (
   t: ReturnType<typeof useI18n>['t'],
@@ -333,56 +327,43 @@ const withSyncedEffects = (spec: WallpaperSpec): WallpaperSpec => ({
   effects: layersToEffects(normalizeLayerOrder(spec.layers)),
 })
 
-const createDefaultWallpaperSpec = (
-  imageUrl: string,
-  preset: ScenePreset,
-): WallpaperSpec => {
-  const layers = [
-    createBackgroundLayer(),
-    ...Object.entries(EFFECT_PRESETS[preset])
-      .filter(([, config]) => config.enabled)
-      .map(([type], index) =>
-        createEffectLayer(type as WallpaperEffectLayerType, preset, index + 1),
-      ),
-  ]
+const cloneStyleCaseLayers = (styleCase: StyleCase): WallpaperLayer[] =>
+  styleCase.layers.map((layer, index) => ({
+    ...layer,
+    id: createLayerId(layer.type),
+    zIndex: index + 1,
+    settings: {
+      ...layer.settings,
+    },
+  }))
 
-  return withSyncedEffects({
+const createDefaultWallpaperSpecFromStyleCase = (
+  imageUrl: string,
+  styleCase: StyleCase,
+): WallpaperSpec =>
+  withSyncedEffects({
     imageUrl,
     camera: {
-      enabled: false,
-      type: 'static',
-      zoom: 1,
-      speed: 1,
-      direction: 'in',
-      intensity: 1,
+      ...styleCase.camera,
     },
     effects: [],
-    layers,
+    layers: [createBackgroundLayer(), ...cloneStyleCaseLayers(styleCase)],
   })
-}
 
-const applyPresetToSpec = (
+const applyStyleCaseToSpec = (
   spec: WallpaperSpec,
-  preset: ScenePreset,
+  styleCase: StyleCase,
 ): WallpaperSpec => {
-  const layers = [
+  const backgroundLayer =
     spec.layers.find((layer) => layer.type === 'background') ??
-      createBackgroundLayer(),
-    ...Object.entries(EFFECT_PRESETS[preset])
-      .filter(([, config]) => config.enabled)
-      .map(([type], index) =>
-        createEffectLayer(type as WallpaperEffectLayerType, preset, index + 1),
-      ),
-  ]
+    createBackgroundLayer()
 
   return withSyncedEffects({
     ...spec,
     camera: {
-      ...spec.camera,
-      zoom: preset === 'rainy' || preset === 'fantasy' ? 1.08 : 1.06,
-      speed: preset === 'rainy' ? 2.5 : preset === 'fantasy' ? 2 : 1,
+      ...styleCase.camera,
     },
-    layers,
+    layers: [backgroundLayer, ...cloneStyleCaseLayers(styleCase)],
   })
 }
 
@@ -391,7 +372,8 @@ export function WallpaperStudioPage() {
   const effectLibrary = translateEffectLibrary(t)
   const [wallpaperSpec, setWallpaperSpec] = useState<WallpaperSpec | null>(null)
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null)
-  const [preset, setPreset] = useState<ScenePreset>('dreamy')
+  const preset: ScenePreset = 'dreamy'
+  const [activeStyleCaseId, setActiveStyleCaseId] = useState(STYLE_CASES[0].id)
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const [openSections, setOpenSections] = useState<
@@ -426,7 +408,13 @@ export function WallpaperStudioPage() {
 
       return imageUrl
     })
-    const nextSpec = createDefaultWallpaperSpec(imageUrl, preset)
+    const activeStyleCase =
+      STYLE_CASES.find((styleCase) => styleCase.id === activeStyleCaseId) ??
+      STYLE_CASES[0]
+    const nextSpec = createDefaultWallpaperSpecFromStyleCase(
+      imageUrl,
+      activeStyleCase,
+    )
     setWallpaperSpec(nextSpec)
     setSelectedLayerId(nextSpec.layers[1]?.id ?? nextSpec.layers[0]?.id ?? null)
   }
@@ -671,14 +659,14 @@ export function WallpaperStudioPage() {
     })
   }
 
-  const handlePresetChange = (nextPreset: ScenePreset) => {
-    setPreset(nextPreset)
+  const handleStyleCaseApply = (styleCase: StyleCase) => {
+    setActiveStyleCaseId(styleCase.id)
     setWallpaperSpec((currentSpec) => {
       if (!currentSpec) {
         return currentSpec
       }
 
-      const nextSpec = applyPresetToSpec(currentSpec, nextPreset)
+      const nextSpec = applyStyleCaseToSpec(currentSpec, styleCase)
       setSelectedLayerId(nextSpec.layers[1]?.id ?? nextSpec.layers[0]?.id ?? null)
       return nextSpec
     })
@@ -780,36 +768,15 @@ export function WallpaperStudioPage() {
           </AccordionSection>
 
           <AccordionSection
-            title={t('presets')}
+            title="Style Case Library"
             open={openSections.presets}
             onToggle={() => toggleSection('presets')}
           >
-            <div className="preset-card-list">
-              {Object.keys(EFFECT_PRESETS).map((presetName) => {
-                const scenePreset = presetName as ScenePreset
-
-                return (
-                  <article
-                    className={`preset-card ${
-                      preset === scenePreset ? 'active' : ''
-                    }`}
-                    key={presetName}
-                  >
-                    <div>
-                      <h3>{presetName}</h3>
-                      <p>{PRESET_DESCRIPTIONS[scenePreset]}</p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={!wallpaperSpec}
-                      onClick={() => handlePresetChange(scenePreset)}
-                    >
-                      {t('apply')}
-                    </button>
-                  </article>
-                )
-              })}
-            </div>
+            <StyleCaseLibrary
+              activeStyleCaseId={activeStyleCaseId}
+              disabled={!wallpaperSpec}
+              onApply={handleStyleCaseApply}
+            />
           </AccordionSection>
 
           <AccordionSection
