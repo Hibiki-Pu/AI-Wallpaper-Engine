@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ExportPanel } from '../components/ExportPanel'
 import { ImageUploader } from '../components/ImageUploader'
 import { WallpaperControls } from '../components/WallpaperControls'
 import { WallpaperPreview } from '../components/WallpaperPreview'
@@ -126,7 +127,10 @@ export function WallpaperStudioPage() {
           onPresetChange={handlePresetChange}
         />
       </aside>
-      <WallpaperPreview spec={wallpaperSpec} />
+      <section className="studio-main">
+        <WallpaperPreview spec={wallpaperSpec} />
+        <ExportPanel spec={wallpaperSpec} />
+      </section>
     </main>
   )
 }

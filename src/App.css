@@ -13,7 +13,8 @@
 }
 
 .uploader-panel,
-.preview-panel {
+.preview-panel,
+.export-panel {
   min-width: 0;
 }
 
@@ -155,11 +156,18 @@
   opacity: 0.5;
 }
 
+.studio-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  padding: 40px;
+}
+
 .preview-panel {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 40px;
 }
 
 .preview-header {
@@ -283,6 +291,74 @@
   text-align: center;
 }
 
+.export-panel {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #dfe4ec;
+  border-radius: 8px;
+}
+
+.export-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.export-panel h2 {
+  margin: 0;
+  color: #101827;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.export-actions button {
+  min-height: 34px;
+  padding: 0 12px;
+  color: #ffffff;
+  background: #176b80;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.export-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.spec-json {
+  max-height: 300px;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  color: #dce9f5;
+  background: #101827;
+  border-radius: 8px;
+  font: 13px/1.55 ui-monospace, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.copy-status {
+  min-height: 18px;
+  color: #176b80;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 @keyframes ken-burns {
   from {
     transform: scale(1) translate3d(-0.4%, -0.4%, 0);
@@ -337,11 +413,28 @@
   }
 
   .preview-panel {
-    padding: 28px 20px;
+    padding: 0;
   }
 
   .controls-panel {
     padding: 0 20px 28px;
+  }
+
+  .studio-main {
+    padding: 28px 20px;
+  }
+
+  .export-header {
+    flex-direction: column;
+  }
+
+  .export-actions {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .export-actions button {
+    flex: 1 1 180px;
   }
 
   .wallpaper-frame {
