@@ -3,6 +3,7 @@ import { ExportPanel } from '../components/ExportPanel'
 import { ImageUploader } from '../components/ImageUploader'
 import { WallpaperControls } from '../components/WallpaperControls'
 import { WallpaperPreview } from '../components/WallpaperPreview'
+import { saveWallpaperPreviewSpec } from '../services/wallpaperPreviewStorage'
 import type { WallpaperEffectSpec, WallpaperSpec } from '../types/WallpaperSpec'
 
 type IntensityPreset = 'soft' | 'medium' | 'strong'
@@ -107,6 +108,15 @@ export function WallpaperStudioPage() {
     )
   }
 
+  const handleOpenPreview = () => {
+    if (!wallpaperSpec) {
+      return
+    }
+
+    saveWallpaperPreviewSpec(wallpaperSpec)
+    window.open('/preview', '_blank')
+  }
+
   useEffect(() => {
     return () => {
       if (activeImageUrl) {
@@ -128,7 +138,10 @@ export function WallpaperStudioPage() {
         />
       </aside>
       <section className="studio-main">
-        <WallpaperPreview spec={wallpaperSpec} />
+        <WallpaperPreview
+          spec={wallpaperSpec}
+          onOpenPreview={handleOpenPreview}
+        />
         <ExportPanel spec={wallpaperSpec} />
       </section>
     </main>
