@@ -3,6 +3,7 @@ import {
   downloadWallpaperSpec,
   serializeWallpaperSpec,
 } from '../services/exportWallpaperSpec'
+import { exportWallpaperPackage } from '../services/exportWallpaperPackage'
 import type { WallpaperSpec } from '../types/WallpaperSpec'
 
 interface ExportPanelProps {
@@ -11,11 +12,13 @@ interface ExportPanelProps {
 
 export function ExportPanel({ spec }: ExportPanelProps) {
   const [copyStatus, setCopyStatus] = useState('')
+  const [exportStatus, setExportStatus] = useState('')
+  const [isExportingPackage, setIsExportingPackage] = useState(false)
   const specJson = useMemo(
     () => (spec ? serializeWallpaperSpec(spec) : ''),
     [spec],
   )
-  const disabled = !spec
+  const disabled = !spec || isExportingPackage
 
   const handleCopySpec = async () => {
     if (!specJson) {
@@ -33,6 +36,25 @@ export function ExportPanel({ spec }: ExportPanelProps) {
     }
 
     downloadWallpaperSpec(spec)
+  }
+
+  const handleDownloadPackage = async () => {
+    if (!spec) {
+      return
+    }
+
+    setIsExportingPackage(true)
+    setExportStatus('Preparing package...')
+
+    try {
+      await exportWallpaperPackage(spec)
+      setExportStatus('Package downloaded')
+      window.setTimeout(() => setExportStatus(''), 2400)
+    } catch {
+      setExportStatus('Package export failed')
+    } finally {
+      setIsExportingPackage(false)
+    }
   }
 
   return (
@@ -54,6 +76,15 @@ export function ExportPanel({ spec }: ExportPanelProps) {
           >
             Download wallpaperSpec.json
           </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={handleDownloadPackage}
+          >
+            {isExportingPackage
+              ? 'Preparing package...'
+              : 'Download wallpaper package'}
+          </button>
         </div>
       </div>
 
@@ -61,7 +92,7 @@ export function ExportPanel({ spec }: ExportPanelProps) {
         {specJson || 'Upload an image to generate a WallpaperSpec.'}
       </pre>
       <div className="copy-status" aria-live="polite">
-        {copyStatus}
+        {exportStatus || copyStatus}
       </div>
     </section>
   )
