@@ -33,11 +33,39 @@ AI Wallpaper Engine 是一个基于 React 的动态壁纸工作台。用户可�
 - CSS animations
 - JSZip
 
-## Running Locally
+## Running Locally / 本地运行
 
-本地运行：
+You do not need to start many services. This project only needs one Vite dev server.
 
-Install dependencies:
+不需要开很多东西。这个项目本地运行时只需要启动一个 Vite 开发服务器。
+
+### One-click on Windows / Windows 一键运行
+
+Double-click:
+
+```text
+start-dev.bat
+```
+
+Or run it from the terminal:
+
+```bash
+start-dev.bat
+```
+
+The script will install dependencies if `node_modules` does not exist, then start the dev server.
+
+这个脚本会在没有 `node_modules` 时自动安装依赖，然后启动开发服务器。
+
+Open:
+
+```text
+http://127.0.0.1:5173/
+```
+
+### Manual commands / 手动命令
+
+Install dependencies once:
 
 ```bash
 npm install
@@ -47,6 +75,12 @@ Start the development server:
 
 ```bash
 npm run dev
+```
+
+Or:
+
+```bash
+npm start
 ```
 
 Build for production:
