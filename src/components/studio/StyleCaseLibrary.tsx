@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { STYLE_CASES } from '../../config/styleCases'
 import { findSimilarCases } from '../../services/styleCaseMatcher'
+import { getAllStyleCasesFromPacks } from '../../services/stylePacks/stylePackService'
 import type { StyleCase } from '../../types/StyleCase'
 import { useI18n } from '../../i18n'
 
@@ -24,28 +24,39 @@ const loadFavorites = () => {
 interface StyleCaseLibraryProps {
   activeStyleCaseId: string
   disabled: boolean
+  refreshKey: number
   onApply: (styleCase: StyleCase) => void
 }
 
 export function StyleCaseLibrary({
   activeStyleCaseId,
   disabled,
+  refreshKey,
   onApply,
 }: StyleCaseLibraryProps) {
   const { t } = useI18n()
   const [searchQuery, setSearchQuery] = useState('')
   const [favoriteIds, setFavoriteIds] = useState<string[]>(loadFavorites)
   const [previewCaseId, setPreviewCaseId] = useState<string | null>(null)
+  const [styleCases, setStyleCases] = useState<StyleCase[]>(
+    getAllStyleCasesFromPacks,
+  )
 
   useEffect(() => {
     localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoriteIds))
   }, [favoriteIds])
 
+  useEffect(() => {
+    setStyleCases(getAllStyleCasesFromPacks())
+  }, [refreshKey])
+
   const visibleCases = useMemo(() => {
     const query = searchQuery.trim()
 
-    return query ? findSimilarCases(query, STYLE_CASES.length) : STYLE_CASES
-  }, [searchQuery])
+    return query
+      ? findSimilarCases(query, styleCases.length, styleCases)
+      : styleCases
+  }, [searchQuery, styleCases])
 
   const toggleFavorite = (styleCaseId: string) => {
     setFavoriteIds((currentFavoriteIds) =>

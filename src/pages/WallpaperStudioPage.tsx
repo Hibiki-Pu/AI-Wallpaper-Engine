@@ -7,10 +7,10 @@ import { CameraPanel } from '../components/studio/CameraPanel'
 import { WallpaperCanvas } from '../components/studio/WallpaperCanvas'
 import { StyleCaseLibrary } from '../components/studio/StyleCaseLibrary'
 import { SmartMatchPanel } from '../components/studio/SmartMatchPanel'
+import { StylePackManager } from '../components/studio/StylePackManager'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
 import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
 import { AccordionSection } from '../components/studio/AccordionSection'
-import { STYLE_CASES } from '../config/styleCases'
 import {
   detectEffectIntensity,
   getEffectIntensityPreset,
@@ -18,6 +18,7 @@ import {
 } from '../config/effectPresets'
 import { saveWallpaperPreviewSpec } from '../services/wallpaperPreviewStorage'
 import { generateSmartMatch } from '../services/smartMatch/smartMatchEngine'
+import { getAllStyleCasesFromPacks } from '../services/stylePacks/stylePackService'
 import type {
   WallpaperEffectLayerType,
   WallpaperEffectSpec,
@@ -379,7 +380,10 @@ export function WallpaperStudioPage() {
   const [smartMatch, setSmartMatch] = useState<SmartMatch | null>(null)
   const [isSmartMatchAnalyzing, setIsSmartMatchAnalyzing] = useState(false)
   const preset: ScenePreset = 'dreamy'
-  const [activeStyleCaseId, setActiveStyleCaseId] = useState(STYLE_CASES[0].id)
+  const [activeStyleCaseId, setActiveStyleCaseId] = useState(
+    getAllStyleCasesFromPacks()[0]?.id ?? '',
+  )
+  const [stylePacksVersion, setStylePacksVersion] = useState(0)
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const [openSections, setOpenSections] = useState<
@@ -427,9 +431,15 @@ export function WallpaperStudioPage() {
 
       return imageUrl
     })
+    const installedStyleCases = getAllStyleCasesFromPacks()
     const activeStyleCase =
-      STYLE_CASES.find((styleCase) => styleCase.id === activeStyleCaseId) ??
-      STYLE_CASES[0]
+      installedStyleCases.find((styleCase) => styleCase.id === activeStyleCaseId) ??
+      installedStyleCases[0]
+
+    if (!activeStyleCase) {
+      return
+    }
+
     const nextSpec = createDefaultWallpaperSpecFromStyleCase(
       imageUrl,
       activeStyleCase,
@@ -801,9 +811,16 @@ export function WallpaperStudioPage() {
               onAnalyzingChange={setIsSmartMatchAnalyzing}
               onApply={handleStyleCaseApply}
             />
+            <StylePackManager
+              refreshKey={stylePacksVersion}
+              onPacksChange={() =>
+                setStylePacksVersion((currentVersion) => currentVersion + 1)
+              }
+            />
             <StyleCaseLibrary
               activeStyleCaseId={activeStyleCaseId}
               disabled={!wallpaperSpec}
+              refreshKey={stylePacksVersion}
               onApply={handleStyleCaseApply}
             />
           </AccordionSection>

@@ -1,9 +1,10 @@
-import { STYLE_CASES } from '../config/styleCases'
+import { getAllStyleCasesFromPacks } from './stylePacks/stylePackService'
 import type { StyleCase } from '../types/StyleCase'
 
 export function findSimilarCases(
   query = '',
   limit = 3,
+  styleCases: StyleCase[] = getAllStyleCasesFromPacks(),
 ): StyleCase[] {
   const queryTokens = query
     .trim()
@@ -12,10 +13,10 @@ export function findSimilarCases(
     .filter(Boolean)
 
   if (queryTokens.length === 0) {
-    return STYLE_CASES.slice(0, limit)
+    return styleCases.slice(0, limit)
   }
 
-  const scoredCases = STYLE_CASES.map((styleCase) => {
+  const scoredCases = styleCases.map((styleCase) => {
     const searchableText = [
       styleCase.name,
       styleCase.description,

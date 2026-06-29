@@ -1,113 +1,169 @@
-# AI Wallpaper Engine
+﻿# AI Wallpaper Engine
 
-AI Wallpaper Engine is a React-based dynamic wallpaper studio. It lets users upload an image, build a layer-based animated wallpaper, preview it fullscreen, and export the project as either JSON or a standalone web wallpaper package.
+Turn any image into a beautiful live wallpaper in minutes.
 
-AI Wallpaper Engine 是一个基于 React 的动态壁纸工作台。用户可以上传图片，用图层系统编辑动态特效，全屏预览壁纸，并导出 `WallpaperSpec` 或独立网页壁纸包。
+Upload your favorite image, apply beautiful animation effects, preview instantly and export your own live wallpaper.
 
-## Core Features
+上传你喜欢的图片，添加动态效果、镜头动画、图层和风格案例，快速制作属于自己的动态壁纸。
 
-核心功能：
+Not Photoshop. Not After Effects. No code required.
 
-- Upload wallpaper image
-- 上传壁纸图片
-- Layer based editor
-- 图层化编辑器
-- Effect library
-- 特效库
-- WallpaperSpec
-- 壁纸配置协议
-- Fullscreen preview
-- 全屏预览
-- Export wallpaperSpec.json
-- 导出 wallpaperSpec.json
-- Export standalone wallpaper package
-- 导出独立网页壁纸包
+不是 Photoshop。不是 After Effects。也不需要写代码。
 
-## Tech Stack
+---
 
-技术栈：
+## Vision
 
-- React
-- TypeScript
-- Vite
-- CSS animations
-- JSZip
+Most live wallpaper editors are difficult to use.
 
-## Running Locally / 本地运行
+Our goal is simple:
 
-You do not need to start many services. This project only needs one Vite dev server.
+Turn any image into a beautiful live wallpaper without learning professional animation software.
 
-不需要开很多东西。这个项目本地运行时只需要启动一个 Vite 开发服务器。
+Users shouldn't need Photoshop or After Effects just to make an image come alive.
 
-### One-click on Windows / Windows 一键运行
+大多数动态壁纸编辑器都太复杂。
 
-Double-click:
+AI Wallpaper Engine 的目标很简单：
 
-```text
-start-dev.bat
-```
+让任何人都能把一张图片变成漂亮的动态壁纸，而不需要学习专业动画软件。
 
-Or run it from the terminal:
+---
 
-```bash
-start-dev.bat
-```
+## Features
 
-The script will install dependencies if `node_modules` does not exist, then start the dev server.
+| Feature | Status |
+| --- | --- |
+| Image Upload | Done |
+| Wallpaper Preview | Done |
+| Layer System | Done |
+| Camera Animation | Done |
+| Dynamic Effect Library | Done |
+| Quick Effect Controls | Done |
+| Style Case Library | Done |
+| Style Pack System | Foundation |
+| Smart Match | Mock |
+| Wallpaper Package Export | Done |
+| Dark / Light Theme | Done |
+| Responsive Studio UI | Done |
 
-这个脚本会在没有 `node_modules` 时自动安装依赖，然后启动开发服务器。
+---
 
-Open:
+## Screenshots
 
-```text
-http://127.0.0.1:5173/
-```
+### Studio Editor
 
-### Manual commands / 手动命令
+> Coming Soon
 
-Install dependencies once:
+### Smart Match
 
-```bash
-npm install
-```
+> Coming Soon
 
-Start the development server:
+### Style Case Library
 
-```bash
-npm run dev
-```
+> Coming Soon
 
-Or:
+### Preview Mode
 
-```bash
-npm start
-```
+> Coming Soon
 
-Build for production:
+### Export Package
 
-```bash
-npm run build
-```
+> Coming Soon
 
-Preview the production build:
-
-```bash
-npm run preview
-```
+---
 
 ## Architecture
 
-```text
-Image Upload -> WallpaperSpec -> Layer System -> Renderer -> Preview / Export
+```mermaid
+flowchart TD
+  A[Image Upload] --> B[WallpaperSpec]
+  B --> C[Layer System]
+  C --> D[Renderer]
+  D --> E[Preview]
+  E --> F[Export Package]
+  F --> G[Live Wallpaper]
 ```
 
-The editor stores the current wallpaper as a `WallpaperSpec`. The spec includes the uploaded image URL, camera settings, legacy effect data, and the current layer stack. The renderer reads the layer stack, orders layers by `zIndex`, and renders the background plus animated effect layers. Preview and export flows reuse the same spec.
+```mermaid
+flowchart TD
+  A[Style Packs] --> B[Style Case Library]
+  B --> C[Smart Match]
+  C --> D[WallpaperSpec]
+```
 
-编辑器会把当前壁纸保存为 `WallpaperSpec`。Spec 包含上传图片 URL、相机配置、兼容用 effects 数据，以及当前图层栈。渲染器读取图层栈，按 `zIndex` 排序，渲染背景和动态特效图层。预览与导出流程复用同一份 Spec。
+Core flow:
 
-## Directory Structure
+- Image Upload -> WallpaperSpec -> Layer System -> Renderer
+- Renderer -> Preview / Export Package
+- Style Packs -> Style Case Library -> Smart Match -> WallpaperSpec
 
-目录结构：
+核心流程：
+
+- 图片上传 -> WallpaperSpec -> 图层系统 -> 渲染器
+- 渲染器 -> 预览 / 导出网页壁纸包
+- 风格包 -> 风格案例库 -> 智能匹配 -> WallpaperSpec
+
+---
+
+## Style Pack System
+
+Style Packs are reusable collections of `StyleCase` data.
+
+Style Pack 是一组可复用的 `StyleCase` 数据集合。
+
+| Pack Type | Description |
+| --- | --- |
+| Official Style Pack | Built-in curated styles maintained by the project. |
+| Community Style Pack | User-created JSON style packs. |
+| Future Marketplace | A future place to discover and share style packs. |
+
+Safety model:
+
+- Style Packs are pure JSON data.
+- No external JavaScript is executed.
+- Safe to import.
+
+安全模型：
+
+- Style Pack 只包含 JSON 数据。
+- 不执行任何外部 JavaScript。
+- 可以安全导入。
+
+---
+
+## Roadmap
+
+- [x] Layer System
+- [x] Renderer
+- [x] Camera
+- [x] Style Case Library
+- [x] Quick Controls
+- [x] Smart Match (Mock)
+- [x] Style Pack Foundation
+- [ ] Community Marketplace
+- [ ] OpenCLIP Integration
+- [ ] Vector Search
+- [ ] Effect Packs
+- [ ] Camera Packs
+- [ ] Cloud Sync
+- [ ] Plugin SDK
+
+---
+
+## Tech Stack
+
+| Current | Future |
+| --- | --- |
+| React | OpenCLIP |
+| TypeScript | Qdrant |
+| Vite | Chroma |
+| CSS | Electron |
+| LocalStorage | Cloud Sync |
+
+---
+
+## Project Structure
 
 ```text
 ai-wallpaper-engine/
@@ -118,47 +174,125 @@ ai-wallpaper-engine/
 |-- public/
 |-- src/
 |   |-- components/
-|   |   `-- studio/
+|   |   |-- studio/
+|   |   `-- ExportPanel.tsx
+|   |-- config/
+|   |   |-- effectPresets.ts
+|   |   |-- officialStylePack.ts
+|   |   `-- styleCases.ts
 |   |-- pages/
+|   |   |-- WallpaperPreviewPage.tsx
+|   |   `-- WallpaperStudioPage.tsx
 |   |-- renderer/
-|   |   `-- effects/
+|   |   |-- effects/
+|   |   `-- WallpaperRenderer.tsx
 |   |-- services/
+|   |   |-- smartMatch/
+|   |   |-- stylePacks/
+|   |   |-- exportWallpaperPackage.ts
+|   |   `-- exportWallpaperSpec.ts
 |   |-- specs/
 |   `-- types/
+|       |-- SmartMatch.ts
+|       |-- StyleCase.ts
+|       |-- StylePack.ts
+|       `-- WallpaperSpec.ts
 |-- package.json
 `-- vite.config.ts
 ```
 
-## Key Modules
+---
 
-关键模块：
+## Getting Started
 
-- `src/pages/WallpaperStudioPage.tsx`: main editor page.
-- `src/pages/WallpaperStudioPage.tsx`: 主编辑器页面。
-- `src/pages/WallpaperPreviewPage.tsx`: fullscreen preview route.
-- `src/pages/WallpaperPreviewPage.tsx`: 全屏预览页面。
-- `src/renderer/WallpaperRenderer.tsx`: renders background and animated layers.
-- `src/renderer/WallpaperRenderer.tsx`: 渲染背景与动态特效图层。
-- `src/renderer/effects/`: effect layer implementations.
-- `src/renderer/effects/`: 特效图层实现。
-- `src/components/studio/`: editor panels, canvas, layer UI, and inspector.
-- `src/components/studio/`: 编辑器面板、画布、图层 UI 和检查器。
-- `src/services/exportWallpaperSpec.ts`: JSON export.
-- `src/services/exportWallpaperSpec.ts`: JSON 导出。
-- `src/services/exportWallpaperPackage.ts`: standalone zip package export.
-- `src/services/exportWallpaperPackage.ts`: 独立 zip 壁纸包导出。
-- `src/types/WallpaperSpec.ts`: shared spec and layer types.
-- `src/types/WallpaperSpec.ts`: 共享 Spec 与图层类型。
+You only need one Vite dev server.
 
-## Roadmap
+本地开发只需要启动一个 Vite dev server。
 
-路线图：
+### Install
 
-- Smart Match
-- 智能匹配
-- Image similarity case search
-- 图片相似案例搜索
-- Electron desktop mode
-- Electron 桌面模式
-- More effect layers
-- 更多特效图层
+```bash
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://127.0.0.1:5173/
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+### One-click on Windows
+
+Double-click:
+
+```text
+start-dev.bat
+```
+
+Or run:
+
+```bash
+start-dev.bat
+```
+
+The script installs dependencies if `node_modules` does not exist, then starts the dev server.
+
+---
+
+## Future Plans
+
+This project is evolving into an ecosystem.
+
+Future versions will support:
+
+- Official Style Packs
+- Community Style Packs
+- Marketplace
+- AI Smart Match
+- OpenCLIP
+- Vector Search
+- Cloud Sync
+
+这个项目正在从单一编辑器演进为一个动态壁纸生态。
+
+未来会支持官方风格包、社区风格包、市场、AI 智能匹配、向量搜索和云同步。
+
+---
+
+## Philosophy
+
+Everyone should be able to turn their favorite image into a beautiful live wallpaper.
+
+Without learning professional animation software.
+
+This project focuses on simplicity, creativity and extensibility.
+
+每个人都应该能把自己喜欢的图片变成漂亮的动态壁纸。
+
+不需要学习专业动画软件。
+
+这个项目关注简单、创造力和可扩展性。
+
+---
+
+## License
+
+MIT

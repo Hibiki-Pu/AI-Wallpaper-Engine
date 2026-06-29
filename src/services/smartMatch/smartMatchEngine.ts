@@ -1,5 +1,5 @@
-import { STYLE_CASES } from '../../config/styleCases'
 import { findSimilarCases } from '../styleCaseMatcher'
+import { getAllStyleCasesFromPacks } from '../stylePacks/stylePackService'
 import type { SmartMatch } from '../../types/SmartMatch'
 import { mockImageAnalyzer } from './mockImageAnalyzer'
 import type { SmartMatchInput } from './smartMatchTypes'
@@ -17,7 +17,10 @@ export async function generateSmartMatch({
 
   // TODO: Replace this mock scoring with OpenCLIP / CLIP Embedding / Qdrant / Chroma / Real Vector Search.
   const matchedCases = findSimilarCases(query, 3)
-  const fallbackCases = matchedCases.length > 0 ? matchedCases : STYLE_CASES.slice(0, 3)
+  const fallbackCases =
+    matchedCases.length > 0
+      ? matchedCases
+      : getAllStyleCasesFromPacks().slice(0, 3)
   const confidence = Math.min(
     0.94,
     0.62 + analysis.detectedTags.length * 0.08 + matchedCases.length * 0.04,
