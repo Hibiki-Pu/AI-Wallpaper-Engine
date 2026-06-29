@@ -5,9 +5,13 @@ export function findSimilarCases(
   query = '',
   limit = 3,
 ): StyleCase[] {
-  const normalizedQuery = query.trim().toLowerCase()
+  const queryTokens = query
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
 
-  if (!normalizedQuery) {
+  if (queryTokens.length === 0) {
     return STYLE_CASES.slice(0, limit)
   }
 
@@ -21,14 +25,18 @@ export function findSimilarCases(
       .join(' ')
       .toLowerCase()
 
-    return {
-      styleCase,
-      score: searchableText.includes(normalizedQuery) ? 1 : 0,
-    }
+    const score = queryTokens.reduce(
+      (currentScore, token) =>
+        searchableText.includes(token) ? currentScore + 1 : currentScore,
+      0,
+    )
+
+    return { styleCase, score }
   })
 
   return scoredCases
     .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((item) => item.styleCase)
 }

@@ -6,6 +6,7 @@ import { LayerPanel } from '../components/studio/LayerPanel'
 import { CameraPanel } from '../components/studio/CameraPanel'
 import { WallpaperCanvas } from '../components/studio/WallpaperCanvas'
 import { StyleCaseLibrary } from '../components/studio/StyleCaseLibrary'
+import { SmartMatchPanel } from '../components/studio/SmartMatchPanel'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
 import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
 import { AccordionSection } from '../components/studio/AccordionSection'
@@ -16,6 +17,7 @@ import {
   type EffectIntensity,
 } from '../config/effectPresets'
 import { saveWallpaperPreviewSpec } from '../services/wallpaperPreviewStorage'
+import { generateSmartMatch } from '../services/smartMatch/smartMatchEngine'
 import type {
   WallpaperEffectLayerType,
   WallpaperEffectSpec,
@@ -23,6 +25,7 @@ import type {
   WallpaperSpec,
 } from '../types/WallpaperSpec'
 import type { StyleCase } from '../types/StyleCase'
+import type { SmartMatch } from '../types/SmartMatch'
 import { useI18n } from '../i18n'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
@@ -372,6 +375,9 @@ export function WallpaperStudioPage() {
   const effectLibrary = translateEffectLibrary(t)
   const [wallpaperSpec, setWallpaperSpec] = useState<WallpaperSpec | null>(null)
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null)
+  const [activeImageFileName, setActiveImageFileName] = useState('')
+  const [smartMatch, setSmartMatch] = useState<SmartMatch | null>(null)
+  const [isSmartMatchAnalyzing, setIsSmartMatchAnalyzing] = useState(false)
   const preset: ScenePreset = 'dreamy'
   const [activeStyleCaseId, setActiveStyleCaseId] = useState(STYLE_CASES[0].id)
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
@@ -399,8 +405,21 @@ export function WallpaperStudioPage() {
       .filter((layer) => layer.type === type)
       .sort((a, b) => b.zIndex - a.zIndex)[0] ?? null
 
+  const runSmartMatch = async (imageUrl: string, fileName: string) => {
+    setIsSmartMatchAnalyzing(true)
+
+    try {
+      const nextMatch = await generateSmartMatch({ imageUrl, fileName })
+      setSmartMatch(nextMatch)
+    } finally {
+      setIsSmartMatchAnalyzing(false)
+    }
+  }
+
   const handleImageSelected = (file: File) => {
     const imageUrl = URL.createObjectURL(file)
+    setActiveImageFileName(file.name)
+    setSmartMatch(null)
     setActiveImageUrl((currentImageUrl) => {
       if (currentImageUrl) {
         URL.revokeObjectURL(currentImageUrl)
@@ -417,6 +436,7 @@ export function WallpaperStudioPage() {
     )
     setWallpaperSpec(nextSpec)
     setSelectedLayerId(nextSpec.layers[1]?.id ?? nextSpec.layers[0]?.id ?? null)
+    void runSmartMatch(imageUrl, file.name)
   }
 
   const handleEffectSelect = (type: WallpaperEffectLayerType) => {
@@ -772,6 +792,15 @@ export function WallpaperStudioPage() {
             open={openSections.presets}
             onToggle={() => toggleSection('presets')}
           >
+            <SmartMatchPanel
+              imageUrl={wallpaperSpec?.imageUrl ?? null}
+              imageFileName={activeImageFileName}
+              match={smartMatch}
+              analyzing={isSmartMatchAnalyzing}
+              onMatch={setSmartMatch}
+              onAnalyzingChange={setIsSmartMatchAnalyzing}
+              onApply={handleStyleCaseApply}
+            />
             <StyleCaseLibrary
               activeStyleCaseId={activeStyleCaseId}
               disabled={!wallpaperSpec}
