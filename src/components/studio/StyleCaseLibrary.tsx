@@ -25,6 +25,7 @@ interface StyleCaseLibraryProps {
   activeStyleCaseId: string
   disabled: boolean
   refreshKey: number
+  matchScores?: Record<string, number>
   onApply: (styleCase: StyleCase) => void
 }
 
@@ -32,6 +33,7 @@ export function StyleCaseLibrary({
   activeStyleCaseId,
   disabled,
   refreshKey,
+  matchScores = {},
   onApply,
 }: StyleCaseLibraryProps) {
   const { t } = useI18n()
@@ -83,6 +85,7 @@ export function StyleCaseLibrary({
         {visibleCases.map((styleCase) => {
           const isFavorite = favoriteIds.includes(styleCase.id)
           const previewOpen = previewCaseId === styleCase.id
+          const matchScore = matchScores[styleCase.id]
 
           return (
             <article
@@ -91,10 +94,16 @@ export function StyleCaseLibrary({
               }`}
               key={styleCase.id}
             >
-              <div className="style-case-header">
+              <div className="style-case-visual">
                 <span className="style-case-emoji" aria-hidden="true">
                   {styleCase.previewEmoji}
                 </span>
+                {matchScore !== undefined && (
+                  <strong>{Math.round(matchScore * 100)}% Match</strong>
+                )}
+              </div>
+
+              <div className="style-case-header">
                 <div>
                   <h3>{styleCase.name}</h3>
                   <p>{styleCase.description}</p>

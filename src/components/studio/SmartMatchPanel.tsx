@@ -65,25 +65,8 @@ export function SmartMatchPanel({
 
       {match && (
         <div className="smart-match-result">
-          <div className="smart-match-meta">
-            <p>
-              <strong>Detected Tags</strong>
-              <span>{match.detectedTags.join(', ')}</span>
-            </p>
-            <p>
-              <strong>Detected Mood</strong>
-              <span>{match.detectedMood.join(', ')}</span>
-            </p>
-            <p>
-              <strong>Detected Colors</strong>
-              <span>{match.detectedColors.join(', ')}</span>
-            </p>
-          </div>
-
-          <p className="smart-match-summary">{match.summary}</p>
-
           <div className="recommended-style-list">
-            <h4>Recommended Styles</h4>
+            <h4>Recommended first</h4>
             {match.matchedCases.map((styleCase, index) => {
               const itemConfidence = Math.max(
                 0.52,
@@ -106,6 +89,23 @@ export function SmartMatchPanel({
                 </article>
               )
             })}
+          </div>
+
+          <p className="smart-match-summary">{match.summary}</p>
+
+          <div className="smart-match-meta">
+            <p>
+              <strong>Detected Colors</strong>
+              <span>{match.detectedColors.join(', ')}</span>
+            </p>
+            <p>
+              <strong>Detected Tags</strong>
+              <span>{match.detectedTags.join(', ')}</span>
+            </p>
+            <p>
+              <strong>Detected Mood</strong>
+              <span>{match.detectedMood.join(', ')}</span>
+            </p>
           </div>
         </div>
       )}

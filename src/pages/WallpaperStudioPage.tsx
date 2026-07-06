@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ExportPanel } from '../components/ExportPanel'
-import { EffectLibrarySidebar } from '../components/studio/EffectLibrarySidebar'
-import { InspectorPanel } from '../components/studio/InspectorPanel'
-import { LayerPanel } from '../components/studio/LayerPanel'
-import { CameraPanel } from '../components/studio/CameraPanel'
-import { WallpaperCanvas } from '../components/studio/WallpaperCanvas'
-import { StyleCaseLibrary } from '../components/studio/StyleCaseLibrary'
-import { SmartMatchPanel } from '../components/studio/SmartMatchPanel'
-import { StylePackManager } from '../components/studio/StylePackManager'
+import { StudioCanvas } from '../components/studio/StudioCanvas'
+import { StudioDrawer } from '../components/studio/StudioDrawer'
+import { FloatingPanelButton } from '../components/studio/FloatingPanelButton'
+import { StudioInspector, type StudioInspectorSection } from '../components/studio/StudioInspector'
+import { StudioSidebar } from '../components/studio/StudioSidebar'
+import { StudioToolbar } from '../components/studio/StudioToolbar'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
 import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
-import { AccordionSection } from '../components/studio/AccordionSection'
 import {
   detectEffectIntensity,
   getEffectIntensityPreset,
@@ -30,8 +26,6 @@ import type { SmartMatch } from '../types/SmartMatch'
 import { useI18n } from '../i18n'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
-
-type InspectorSection = 'camera' | 'presets' | 'layers' | 'selectedLayer' | 'export'
 
 const translateEffectLibrary = (
   t: ReturnType<typeof useI18n>['t'],
@@ -384,15 +378,15 @@ export function WallpaperStudioPage() {
     getAllStyleCasesFromPacks()[0]?.id ?? '',
   )
   const [stylePacksVersion, setStylePacksVersion] = useState(0)
+  const [leftDrawerOpen, setLeftDrawerOpen] = useState(false)
+  const [rightDrawerOpen, setRightDrawerOpen] = useState(false)
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
-  const [isInspectorOpen, setIsInspectorOpen] = useState(true)
   const [openSections, setOpenSections] = useState<
-    Record<InspectorSection, boolean>
+    Record<StudioInspectorSection, boolean>
   >({
-    camera: true,
-    presets: false,
+    current: true,
+    smartMatch: false,
     layers: false,
-    selectedLayer: true,
     export: false,
   })
   const [quickSelections, setQuickSelections] = useState<
@@ -590,10 +584,10 @@ export function WallpaperStudioPage() {
     }
 
     setSelectedLayerId(layer.id)
-    setIsInspectorOpen(true)
+    setRightDrawerOpen(true)
     setOpenSections((currentSections) => ({
       ...currentSections,
-      selectedLayer: true,
+      current: true,
     }))
   }
 
@@ -716,7 +710,7 @@ export function WallpaperStudioPage() {
     )
   }
 
-  const toggleSection = (section: InspectorSection) => {
+  const toggleSection = (section: StudioInspectorSection) => {
     setOpenSections((currentSections) => ({
       ...currentSections,
       [section]: !currentSections[section],
@@ -748,121 +742,94 @@ export function WallpaperStudioPage() {
       ? null
       : effectLibrary.find((effect) => effect.type === selectedLayer?.type) ??
         null
+  const smartMatchScores =
+    smartMatch?.matchedCases.reduce<Record<string, number>>(
+      (scores, styleCase, index) => ({
+        ...scores,
+        [styleCase.id]: Math.max(0.52, smartMatch.confidence - index * 0.08),
+      }),
+      {},
+    ) ?? {}
 
   return (
     <main className="wallpaper-studio">
-      <EffectLibrarySidebar
-        effects={effectLibrary}
-        spec={wallpaperSpec}
-        selectedLayerId={selectedLayerId}
-        onEffectSelect={handleEffectSelect}
-        onEffectToggle={handleEffectToggle}
-        getEffectIntensity={getEffectIntensity}
-        onEffectIntensityChange={handleEffectIntensityChange}
-        onEffectAdvanced={handleEffectAdvanced}
+      <StudioToolbar
+        canPreview={Boolean(wallpaperSpec)}
+        onOpenPreview={handleOpenPreview}
       />
 
-      <section className="studio-canvas-column">
-        <WallpaperCanvas
+      <section className="studio-canvas-shell">
+        <FloatingPanelButton
+          side="left"
+          icon="🎨"
+          label="素材库"
+          onClick={() => setLeftDrawerOpen(true)}
+        />
+        <FloatingPanelButton
+          side="right"
+          icon="⚙"
+          label="属性"
+          onClick={() => setRightDrawerOpen(true)}
+        />
+
+        <StudioCanvas
           spec={wallpaperSpec}
           onImageSelected={handleImageSelected}
-          onOpenPreview={handleOpenPreview}
         />
       </section>
 
-      <aside
-        className={`studio-inspector-column ${
-          isInspectorOpen ? 'open' : 'collapsed'
-        }`}
+      <StudioDrawer
+        side="left"
+        title="素材库"
+        open={leftDrawerOpen}
+        onClose={() => setLeftDrawerOpen(false)}
       >
-        <div className="inspector-topbar">
-          <button
-            type="button"
-            className="inspector-collapse-button"
-            onClick={() => setIsInspectorOpen((isOpen) => !isOpen)}
-          >
-            {isInspectorOpen ? t('closePanel') : t('openPanel')}
-          </button>
-        </div>
+        <StudioSidebar
+          effects={effectLibrary}
+          spec={wallpaperSpec}
+          selectedLayerId={selectedLayerId}
+          activeStyleCaseId={activeStyleCaseId}
+          smartMatchScores={smartMatchScores}
+          stylePacksVersion={stylePacksVersion}
+          onStylePacksChange={() =>
+            setStylePacksVersion((currentVersion) => currentVersion + 1)
+          }
+          onStyleCaseApply={handleStyleCaseApply}
+          onCameraChange={handleCameraChange}
+          onEffectSelect={handleEffectSelect}
+          onEffectToggle={handleEffectToggle}
+          getEffectIntensity={getEffectIntensity}
+          onEffectIntensityChange={handleEffectIntensityChange}
+          onEffectAdvanced={handleEffectAdvanced}
+        />
+      </StudioDrawer>
 
-        <div className="inspector-content">
-          <AccordionSection
-            title={t('camera')}
-            open={openSections.camera}
-            onToggle={() => toggleSection('camera')}
-          >
-            <CameraPanel
-              camera={wallpaperSpec?.camera ?? null}
-              onCameraChange={handleCameraChange}
-            />
-          </AccordionSection>
-
-          <AccordionSection
-            title="Style Case Library"
-            open={openSections.presets}
-            onToggle={() => toggleSection('presets')}
-          >
-            <SmartMatchPanel
-              imageUrl={wallpaperSpec?.imageUrl ?? null}
-              imageFileName={activeImageFileName}
-              match={smartMatch}
-              analyzing={isSmartMatchAnalyzing}
-              onMatch={setSmartMatch}
-              onAnalyzingChange={setIsSmartMatchAnalyzing}
-              onApply={handleStyleCaseApply}
-            />
-            <StylePackManager
-              refreshKey={stylePacksVersion}
-              onPacksChange={() =>
-                setStylePacksVersion((currentVersion) => currentVersion + 1)
-              }
-            />
-            <StyleCaseLibrary
-              activeStyleCaseId={activeStyleCaseId}
-              disabled={!wallpaperSpec}
-              refreshKey={stylePacksVersion}
-              onApply={handleStyleCaseApply}
-            />
-          </AccordionSection>
-
-          <AccordionSection
-            title={t('layers')}
-            open={openSections.layers}
-            onToggle={() => toggleSection('layers')}
-          >
-            {wallpaperSpec && (
-              <LayerPanel
-                layers={wallpaperSpec.layers}
-                selectedLayerId={selectedLayerId}
-                onLayerSelect={handleLayerSelect}
-                onLayerChange={handleLayerChange}
-                onLayerDelete={handleLayerDelete}
-                onMoveLayer={handleMoveLayer}
-              />
-            )}
-          </AccordionSection>
-
-          <AccordionSection
-            title={t('selectedLayer')}
-            open={openSections.selectedLayer}
-            onToggle={() => toggleSection('selectedLayer')}
-          >
-            <InspectorPanel
-              layer={selectedLayer}
-              metadata={selectedEffectMetadata}
-              onEffectChange={handleInspectorLayerChange}
-            />
-          </AccordionSection>
-
-          <AccordionSection
-            title={t('projectPackage')}
-            open={openSections.export}
-            onToggle={() => toggleSection('export')}
-          >
-            <ExportPanel spec={wallpaperSpec} />
-          </AccordionSection>
-        </div>
-      </aside>
+      <StudioDrawer
+        side="right"
+        title="属性面板"
+        open={rightDrawerOpen}
+        onClose={() => setRightDrawerOpen(false)}
+      >
+        <StudioInspector
+          openSections={openSections}
+          spec={wallpaperSpec}
+          selectedLayer={selectedLayer}
+          selectedEffectMetadata={selectedEffectMetadata}
+          selectedLayerId={selectedLayerId}
+          smartMatch={smartMatch}
+          isSmartMatchAnalyzing={isSmartMatchAnalyzing}
+          activeImageFileName={activeImageFileName}
+          onToggleSection={toggleSection}
+          onSmartMatch={setSmartMatch}
+          onSmartMatchAnalyzingChange={setIsSmartMatchAnalyzing}
+          onStyleCaseApply={handleStyleCaseApply}
+          onLayerSelect={handleLayerSelect}
+          onLayerChange={handleLayerChange}
+          onLayerDelete={handleLayerDelete}
+          onMoveLayer={handleMoveLayer}
+          onInspectorLayerChange={handleInspectorLayerChange}
+        />
+      </StudioDrawer>
     </main>
   )
 }
