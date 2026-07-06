@@ -8,33 +8,39 @@ interface CameraPanelProps {
 
 const CAMERA_MODES: Array<{
   type: WallpaperCameraSpec['type']
-  label: string
+  labelKey:
+    | 'staticCamera'
+    | 'slowZoomIn'
+    | 'slowZoomOut'
+    | 'gentlePanLeft'
+    | 'gentlePanRight'
+    | 'floatingBreathing'
   patch: Partial<WallpaperCameraSpec>
 }> = [
-  { type: 'static', label: 'Static', patch: { enabled: false, zoom: 1, speed: 1 } },
+  { type: 'static', labelKey: 'staticCamera', patch: { enabled: false, zoom: 1, speed: 1 } },
   {
     type: 'slow_zoom_in',
-    label: 'Slow Zoom In',
+    labelKey: 'slowZoomIn',
     patch: { enabled: true, zoom: 1.08, speed: 1, direction: 'in', intensity: 1 },
   },
   {
     type: 'slow_zoom_out',
-    label: 'Slow Zoom Out',
+    labelKey: 'slowZoomOut',
     patch: { enabled: true, zoom: 1.08, speed: 1, direction: 'out', intensity: 1 },
   },
   {
     type: 'pan_left',
-    label: 'Gentle Pan Left',
+    labelKey: 'gentlePanLeft',
     patch: { enabled: true, zoom: 1.04, speed: 1, direction: 'left', intensity: 1 },
   },
   {
     type: 'pan_right',
-    label: 'Gentle Pan Right',
+    labelKey: 'gentlePanRight',
     patch: { enabled: true, zoom: 1.04, speed: 1, direction: 'right', intensity: 1 },
   },
   {
     type: 'breathing',
-    label: 'Floating / Breathing',
+    labelKey: 'floatingBreathing',
     patch: { enabled: true, zoom: 1.035, speed: 1, intensity: 0.7 },
   },
 ]
@@ -73,7 +79,7 @@ export function CameraPanel({ camera, onCameraChange }: CameraPanelProps) {
         >
           {CAMERA_MODES.map((mode) => (
             <option key={mode.type} value={mode.type}>
-              {mode.label}
+              {t(mode.labelKey)}
             </option>
           ))}
         </select>

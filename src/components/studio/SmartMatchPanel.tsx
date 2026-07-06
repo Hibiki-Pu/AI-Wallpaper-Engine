@@ -1,6 +1,7 @@
 import type { SmartMatch } from '../../types/SmartMatch'
 import type { StyleCase } from '../../types/StyleCase'
 import { generateSmartMatch } from '../../services/smartMatch/smartMatchEngine'
+import { useI18n } from '../../i18n'
 
 interface SmartMatchPanelProps {
   imageUrl: string | null
@@ -23,6 +24,7 @@ export function SmartMatchPanel({
   onAnalyzingChange,
   onApply,
 }: SmartMatchPanelProps) {
+  const { t } = useI18n()
   const handleAnalyze = async () => {
     if (!imageUrl || analyzing) {
       return
@@ -42,31 +44,31 @@ export function SmartMatchPanel({
   }
 
   return (
-    <section className="smart-match-panel" aria-label="Smart Match">
+    <section className="smart-match-panel" aria-label={t('smartMatch')}>
       <div className="smart-match-heading">
         <div>
-          <p className="panel-kicker">Smart Match</p>
-          <h3>Intelligent Style Match</h3>
+          <p className="panel-kicker">{t('smartMatch')}</p>
+          <h3>{t('intelligentStyleMatch')}</h3>
         </div>
         <button
           type="button"
           disabled={!imageUrl || analyzing}
           onClick={handleAnalyze}
         >
-          {analyzing ? 'Analyzing...' : 'Analyze Current Wallpaper'}
+          {analyzing ? t('analyzing') : t('analyzeCurrentWallpaper')}
         </button>
       </div>
 
       {!imageUrl && (
         <p className="smart-match-empty">
-          Upload a wallpaper image to generate style recommendations.
+          {t('smartMatchEmpty')}
         </p>
       )}
 
       {match && (
         <div className="smart-match-result">
           <div className="recommended-style-list">
-            <h4>Recommended first</h4>
+            <h4>{t('recommendedFirst')}</h4>
             {match.matchedCases.map((styleCase, index) => {
               const itemConfidence = Math.max(
                 0.52,
@@ -84,7 +86,7 @@ export function SmartMatchPanel({
                   </div>
                   <strong>{percent(itemConfidence)}</strong>
                   <button type="button" onClick={() => onApply(styleCase)}>
-                    Apply
+                    {t('apply')}
                   </button>
                 </article>
               )
@@ -95,15 +97,15 @@ export function SmartMatchPanel({
 
           <div className="smart-match-meta">
             <p>
-              <strong>Detected Colors</strong>
+              <strong>{t('detectedColors')}</strong>
               <span>{match.detectedColors.join(', ')}</span>
             </p>
             <p>
-              <strong>Detected Tags</strong>
+              <strong>{t('detectedTags')}</strong>
               <span>{match.detectedTags.join(', ')}</span>
             </p>
             <p>
-              <strong>Detected Mood</strong>
+              <strong>{t('detectedMood')}</strong>
               <span>{match.detectedMood.join(', ')}</span>
             </p>
           </div>

@@ -1,39 +1,50 @@
-import { ImageUploader } from '../ImageUploader'
-import { WallpaperRenderer } from '../../renderer/WallpaperRenderer'
+import { useEffect, useState } from 'react'
+import { DEFAULT_CANVAS_SIZE, Workspace } from './Workspace'
+import type { CanvasSizePreset } from './CanvasSizeSelector'
+import type { CanvasPan } from './CanvasViewport'
+import type { CanvasZoomMode } from './ZoomControls'
 import type { WallpaperSpec } from '../../types/WallpaperSpec'
 
 interface StudioCanvasProps {
   spec: WallpaperSpec | null
   onImageSelected: (file: File) => void
+  onImageReplace: (file: File) => void
+  resetSignal: number
 }
 
-export function StudioCanvas({ spec, onImageSelected }: StudioCanvasProps) {
+export function StudioCanvas({
+  spec,
+  onImageSelected,
+  onImageReplace,
+  resetSignal,
+}: StudioCanvasProps) {
+  const [canvasSize, setCanvasSize] =
+    useState<CanvasSizePreset>(DEFAULT_CANVAS_SIZE)
+  const [zoom, setZoom] = useState(100)
+  const [zoomMode, setZoomMode] = useState<CanvasZoomMode>('fit')
+  const [pan, setPan] = useState<CanvasPan>({ x: 0, y: 0 })
+
+  useEffect(() => {
+    setPan({ x: 0, y: 0 })
+    setZoom(100)
+    setZoomMode('fit')
+  }, [resetSignal])
+
   return (
     <section className="studio-canvas-column" aria-label="Wallpaper canvas">
-      <div className="canvas-workspace">
-        <div className="canvas-stage-header">
-          <div>
-            <p className="panel-kicker">Canvas</p>
-            <h1>Wallpaper Studio</h1>
-          </div>
-          <span>16:9 Workspace</span>
-        </div>
-
-        <div className="wallpaper-canvas-frame">
-          {spec ? (
-            <WallpaperRenderer spec={spec} />
-          ) : (
-            <div className="canvas-empty-state">
-              <div className="empty-upload-art" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
-              <ImageUploader onImageSelected={onImageSelected} />
-            </div>
-          )}
-        </div>
-      </div>
+      <Workspace
+        spec={spec}
+        canvasSize={canvasSize}
+        zoom={zoom}
+        zoomMode={zoomMode}
+        pan={pan}
+        onCanvasSizeChange={setCanvasSize}
+        onZoomChange={setZoom}
+        onZoomModeChange={setZoomMode}
+        onPanChange={setPan}
+        onImageSelected={onImageSelected}
+        onImageReplace={onImageReplace}
+      />
     </section>
   )
 }

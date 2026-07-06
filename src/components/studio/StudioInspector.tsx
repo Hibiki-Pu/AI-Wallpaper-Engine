@@ -10,6 +10,7 @@ import type {
   WallpaperLayer,
   WallpaperSpec,
 } from '../../types/WallpaperSpec'
+import { useI18n } from '../../i18n'
 
 type InspectorSection = 'current' | 'smartMatch' | 'layers' | 'export'
 
@@ -52,11 +53,13 @@ export function StudioInspector({
   onMoveLayer,
   onInspectorLayerChange,
 }: StudioInspectorProps) {
+  const { t } = useI18n()
+
   return (
-    <aside className="studio-inspector-column" aria-label="Inspector">
+    <aside className="studio-inspector-column" aria-label={t('inspector')}>
       <div className="inspector-content">
         <AccordionSection
-          title="Current Edit"
+          title={t('currentEdit')}
           open={openSections.current}
           onToggle={() => onToggleSection('current')}
         >
@@ -68,7 +71,7 @@ export function StudioInspector({
         </AccordionSection>
 
         <AccordionSection
-          title="Smart Match"
+          title={t('smartMatch')}
           open={openSections.smartMatch}
           onToggle={() => onToggleSection('smartMatch')}
         >
@@ -84,7 +87,7 @@ export function StudioInspector({
         </AccordionSection>
 
         <AccordionSection
-          title="Advanced Layers"
+          title={t('advancedLayers')}
           open={openSections.layers}
           onToggle={() => onToggleSection('layers')}
         >
@@ -101,7 +104,7 @@ export function StudioInspector({
         </AccordionSection>
 
         <AccordionSection
-          title="Export"
+          title={t('export')}
           open={openSections.export}
           onToggle={() => onToggleSection('export')}
         >

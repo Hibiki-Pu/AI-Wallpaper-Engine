@@ -3,6 +3,8 @@ import { CameraPanel } from './CameraPanel'
 import { EffectLibrarySidebar } from './EffectLibrarySidebar'
 import { StyleCaseLibrary } from './StyleCaseLibrary'
 import { StylePackManager } from './StylePackManager'
+import { WallpaperAssetPanel } from './WallpaperAssetPanel'
+import { useI18n } from '../../i18n'
 import type { EffectLibraryItem } from './EffectCard'
 import type {
   WallpaperEffectLayerType,
@@ -12,6 +14,7 @@ import type { EffectIntensity } from '../../config/effectPresets'
 import type { StyleCase } from '../../types/StyleCase'
 
 type StudioToolCategory =
+  | 'assets'
   | 'style'
   | 'effects'
   | 'environment'
@@ -24,11 +27,16 @@ interface StudioSidebarProps {
   effects: EffectLibraryItem[]
   spec: WallpaperSpec | null
   selectedLayerId: string | null
+  activeImageFileName: string
+  activeImageDimensions: { width: number; height: number } | null
   activeStyleCaseId: string
   smartMatchScores: Record<string, number>
   stylePacksVersion: number
   onStylePacksChange: () => void
   onStyleCaseApply: (styleCase: StyleCase) => void
+  onImageReplace: (file: File) => void
+  onImageDelete: () => void
+  onResetCanvasPosition: () => void
   onCameraChange: (patch: Partial<WallpaperSpec['camera']>) => void
   onEffectSelect: (type: WallpaperEffectLayerType) => void
   onEffectToggle: (
@@ -49,15 +57,24 @@ interface StudioSidebarProps {
 const CATEGORY_ITEMS: Array<{
   id: StudioToolCategory
   icon: string
-  label: string
+  labelKey:
+    | 'assets'
+    | 'style'
+    | 'effects'
+    | 'environment'
+    | 'camera'
+    | 'animation'
+    | 'stylePack'
+    | 'advanced'
 }> = [
-  { id: 'style', icon: '\uD83C\uDFA8', label: 'Style' },
-  { id: 'effects', icon: '\u2728', label: 'Effects' },
-  { id: 'environment', icon: '\uD83C\uDF26\uFE0F', label: 'Environment' },
-  { id: 'camera', icon: '\uD83D\uDCF7', label: 'Camera' },
-  { id: 'animation', icon: '\uD83C\uDFAD', label: 'Animation' },
-  { id: 'packs', icon: '\uD83D\uDCE6', label: 'Style Pack' },
-  { id: 'advanced', icon: '\u2699\uFE0F', label: 'Advanced' },
+  { id: 'assets', icon: '\uD83D\uDDBC\uFE0F', labelKey: 'assets' },
+  { id: 'style', icon: '\uD83C\uDFA8', labelKey: 'style' },
+  { id: 'effects', icon: '\u2728', labelKey: 'effects' },
+  { id: 'environment', icon: '\uD83C\uDF26\uFE0F', labelKey: 'environment' },
+  { id: 'camera', icon: '\uD83D\uDCF7', labelKey: 'camera' },
+  { id: 'animation', icon: '\uD83C\uDFAD', labelKey: 'animation' },
+  { id: 'packs', icon: '\uD83D\uDCE6', labelKey: 'stylePack' },
+  { id: 'advanced', icon: '\u2699\uFE0F', labelKey: 'advanced' },
 ]
 
 const ENVIRONMENT_TYPES: WallpaperEffectLayerType[] = ['snow', 'rain', 'fog', 'stars']
@@ -67,11 +84,16 @@ export function StudioSidebar({
   effects,
   spec,
   selectedLayerId,
+  activeImageFileName,
+  activeImageDimensions,
   activeStyleCaseId,
   smartMatchScores,
   stylePacksVersion,
   onStylePacksChange,
   onStyleCaseApply,
+  onImageReplace,
+  onImageDelete,
+  onResetCanvasPosition,
   onCameraChange,
   onEffectSelect,
   onEffectToggle,
@@ -79,6 +101,7 @@ export function StudioSidebar({
   onEffectIntensityChange,
   onEffectAdvanced,
 }: StudioSidebarProps) {
+  const { t } = useI18n()
   const [activeCategory, setActiveCategory] =
     useState<StudioToolCategory>('style')
 
@@ -100,7 +123,7 @@ export function StudioSidebar({
             onClick={() => setActiveCategory(item.id)}
           >
             <span aria-hidden="true">{item.icon}</span>
-            <strong>{item.label}</strong>
+            <strong>{t(item.labelKey)}</strong>
           </button>
         ))}
       </nav>
@@ -113,6 +136,17 @@ export function StudioSidebar({
             refreshKey={stylePacksVersion}
             matchScores={smartMatchScores}
             onApply={onStyleCaseApply}
+          />
+        )}
+
+        {activeCategory === 'assets' && (
+          <WallpaperAssetPanel
+            spec={spec}
+            fileName={activeImageFileName}
+            dimensions={activeImageDimensions}
+            onReplaceImage={onImageReplace}
+            onDeleteImage={onImageDelete}
+            onResetPosition={onResetCanvasPosition}
           />
         )}
 
@@ -147,12 +181,9 @@ export function StudioSidebar({
 
         {activeCategory === 'advanced' && (
           <div className="advanced-mode-note">
-            <p className="panel-kicker">Advanced</p>
-            <h2>Layer editing lives in the Inspector</h2>
-            <p>
-              Select a layer or effect, then use the right panel for z-index,
-              lock, visibility, variant and precision controls.
-            </p>
+            <p className="panel-kicker">{t('advanced')}</p>
+            <h2>{t('advancedModeTitle')}</h2>
+            <p>{t('advancedModeCopy')}</p>
           </div>
         )}
       </div>

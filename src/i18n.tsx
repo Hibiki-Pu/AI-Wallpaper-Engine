@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useContext,
   useMemo,
@@ -8,103 +8,21 @@ import {
 
 type Language = 'en' | 'zh'
 
-type TranslationKey =
-  | 'language'
-  | 'theme'
-  | 'camera'
-  | 'cameraMotion'
-  | 'cameraMode'
-  | 'zoom'
-  | 'intensity'
-  | 'weak'
-  | 'medium'
-  | 'strong'
-  | 'custom'
-  | 'advanced'
-  | 'variant'
-  | 'light'
-  | 'dark'
-  | 'openPanel'
-  | 'closePanel'
-  | 'showJson'
-  | 'hideJson'
-  | 'selectedLayer'
-  | 'apply'
-  | 'library'
-  | 'effects'
-  | 'canvas'
-  | 'wallpaperCanvas'
-  | 'openFullscreenPreview'
-  | 'source'
-  | 'appName'
-  | 'uploadCopy'
-  | 'chooseImage'
-  | 'imageFormats'
-  | 'enabled'
-  | 'off'
-  | 'add'
-  | 'remove'
-  | 'layers'
-  | 'layerStack'
-  | 'visible'
-  | 'locked'
-  | 'delete'
-  | 'moveUp'
-  | 'moveDown'
-  | 'zIndex'
-  | 'presets'
-  | 'inspector'
-  | 'noLayerSelected'
-  | 'baseImageLayer'
-  | 'count'
-  | 'speed'
-  | 'opacity'
-  | 'size'
-  | 'blur'
-  | 'direction'
-  | 'projectPackage'
-  | 'copySpecJson'
-  | 'downloadSpecJson'
-  | 'downloadPackage'
-  | 'preparingPackage'
-  | 'packageDownloaded'
-  | 'packageExportFailed'
-  | 'copied'
-  | 'emptySpec'
-  | 'noSpecFound'
-  | 'background'
-  | 'glowParticles'
-  | 'petals'
-  | 'snow'
-  | 'rain'
-  | 'fireflies'
-  | 'fog'
-  | 'lightRays'
-  | 'stars'
-  | 'glowParticlesDesc'
-  | 'petalsDesc'
-  | 'snowDesc'
-  | 'rainDesc'
-  | 'firefliesDesc'
-  | 'fogDesc'
-  | 'lightRaysDesc'
-  | 'starsDesc'
-
-const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
+const TRANSLATIONS = {
   en: {
     language: '中文',
     theme: 'Theme',
     camera: 'Camera',
     cameraMotion: 'Camera Motion',
     cameraMode: 'Mode',
-    zoom: 'zoom',
-    intensity: 'intensity',
+    zoom: 'Zoom',
+    intensity: 'Intensity',
     weak: 'Weak',
     medium: 'Medium',
     strong: 'Strong',
     custom: 'Custom',
     advanced: 'Advanced',
-    variant: 'variant',
+    variant: 'Variant',
     light: 'Light',
     dark: 'Dark',
     openPanel: 'Open inspector',
@@ -129,8 +47,8 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     remove: 'Remove',
     layers: 'Layers',
     layerStack: 'Layer Stack',
-    visible: 'visible',
-    locked: 'locked',
+    visible: 'Visible',
+    locked: 'Locked',
     delete: 'Delete',
     moveUp: 'Move Up',
     moveDown: 'Move Down',
@@ -139,12 +57,12 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     inspector: 'Inspector',
     noLayerSelected: 'No layer selected',
     baseImageLayer: 'Base wallpaper image layer.',
-    count: 'count',
-    speed: 'speed',
-    opacity: 'opacity',
-    size: 'size',
-    blur: 'blur',
-    direction: 'direction',
+    count: 'Count',
+    speed: 'Speed',
+    opacity: 'Opacity',
+    size: 'Size',
+    blur: 'Blur',
+    direction: 'Direction',
     projectPackage: 'Project package',
     copySpecJson: 'Copy Spec JSON',
     downloadSpecJson: 'Download wallpaperSpec.json',
@@ -172,6 +90,87 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     fogDesc: 'Wide drifting mist layers for atmospheric depth.',
     lightRaysDesc: 'Soft beams sweeping through the canvas.',
     starsDesc: 'Subtle twinkling points for night scenes.',
+    save: 'Save',
+    undo: 'Undo',
+    redo: 'Redo',
+    liveWallpaperStudio: 'Live wallpaper studio',
+    assetLibrary: 'Asset Library',
+    properties: 'Properties',
+    assets: 'Assets',
+    style: 'Style',
+    environment: 'Environment',
+    animation: 'Animation',
+    stylePack: 'Style Pack',
+    wallpaperWorkspace: 'Wallpaper Workspace',
+    canvasSize: 'Canvas Size',
+    canvasZoom: 'Canvas Zoom',
+    fit: 'Fit',
+    fill: 'Fill',
+    desktop169: 'Desktop 16:9',
+    desktop4k: 'Desktop 4K',
+    ultrawide219: '21:9 Ultrawide',
+    phone916: 'Phone 9:16',
+    tablet: 'Tablet',
+    square11: 'Square 1:1',
+    portrait34: 'Portrait 3:4',
+    landscape43: 'Landscape 4:3',
+    customCanvas: 'Custom Canvas',
+    width: 'Width',
+    height: 'Height',
+    cancel: 'Cancel',
+    uploadWallpaper: 'Upload Wallpaper',
+    dragImageHere: 'Drag image here',
+    clickToBrowse: 'or click to browse',
+    replaceCurrentWallpaper: 'Replace current wallpaper?',
+    currentWallpaper: 'Current Wallpaper',
+    wallpaperImage: 'Wallpaper image',
+    dimensionsLoading: 'Dimensions loading',
+    replaceImage: 'Replace Image',
+    reupload: 'Re-upload',
+    resetPosition: 'Reset Position',
+    deleteImage: 'Delete Image',
+    assetEmpty: 'Upload a wallpaper image from the canvas to create your first asset.',
+    searchStyleCases: 'Search Style Cases',
+    match: 'Match',
+    favorite: 'Favorite',
+    preview: 'Preview',
+    hidePreview: 'Hide Preview',
+    tags: 'Tags',
+    noMatchingStyleCases: 'No matching style cases.',
+    currentEdit: 'Current Edit',
+    smartMatch: 'Smart Match',
+    advancedLayers: 'Advanced Layers',
+    export: 'Export',
+    intelligentStyleMatch: 'Intelligent Style Match',
+    analyzing: 'Analyzing...',
+    analyzeCurrentWallpaper: 'Analyze Current Wallpaper',
+    smartMatchEmpty: 'Upload a wallpaper image to generate style recommendations.',
+    recommendedFirst: 'Recommended first',
+    detectedColors: 'Detected Colors',
+    detectedTags: 'Detected Tags',
+    detectedMood: 'Detected Mood',
+    stylePacks: 'Style Packs',
+    packManager: 'Pack Manager',
+    importJson: 'Import JSON',
+    exportOfficial: 'Export Official',
+    version: 'Version',
+    cases: 'Cases',
+    importedPack: 'Imported {name}.',
+    importPackFailed: 'Failed to import style pack.',
+    advancedModeTitle: 'Layer editing lives in the Inspector',
+    advancedModeCopy:
+      'Select a layer or effect, then use the right panel for z-index, lock, visibility, variant and precision controls.',
+    staticCamera: 'Static',
+    slowZoomIn: 'Slow Zoom In',
+    slowZoomOut: 'Slow Zoom Out',
+    gentlePanLeft: 'Gentle Pan Left',
+    gentlePanRight: 'Gentle Pan Right',
+    floatingBreathing: 'Floating / Breathing',
+    defaultDirection: 'Default',
+    left: 'Left',
+    right: 'Right',
+    up: 'Up',
+    down: 'Down',
   },
   zh: {
     language: 'English',
@@ -189,8 +188,8 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     variant: '样式',
     light: '浅色',
     dark: '深色',
-    openPanel: '展开检查器',
-    closePanel: '收起检查器',
+    openPanel: '打开属性面板',
+    closePanel: '关闭属性面板',
     showJson: '显示 JSON',
     hideJson: '隐藏 JSON',
     selectedLayer: '选中图层',
@@ -200,9 +199,9 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     canvas: '画布',
     wallpaperCanvas: '壁纸画布',
     openFullscreenPreview: '打开全屏预览',
-    source: '图片源',
+    source: '图片来源',
     appName: 'AI 壁纸引擎',
-    uploadCopy: '导入图片，创建动态壁纸预览。',
+    uploadCopy: '导入图片，创建第一张动态壁纸预览。',
     chooseImage: '选择图片',
     imageFormats: '支持 PNG、JPG、GIF 或 WebP',
     enabled: '已启用',
@@ -210,7 +209,7 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     add: '添加',
     remove: '移除',
     layers: '图层',
-    layerStack: '图层栈',
+    layerStack: '图层堆栈',
     visible: '可见',
     locked: '锁定',
     delete: '删除',
@@ -245,17 +244,100 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     fireflies: '萤火虫',
     fog: '雾',
     lightRays: '光束',
-    stars: '星空',
-    glowParticlesDesc: '柔和漂浮的光点，营造轻盈梦幻感。',
+    stars: '星星',
+    glowParticlesDesc: '柔和漂浮的光点，营造轻微魔法感。',
     petalsDesc: '缓慢飘落的花瓣，为画面增加自然动势。',
-    snowDesc: '轻雪粒子从画面上方落下。',
-    rainDesc: '快速斜向雨线，营造雨天氛围。',
+    snowDesc: '轻盈雪花从画面上方飘落。',
+    rainDesc: '快速斜向雨滴，营造雨夜氛围。',
     firefliesDesc: '温暖游动的光点，适合自然和幻想场景。',
-    fogDesc: '宽幅漂移雾层，增加空间纵深。',
+    fogDesc: '宽幅移动的雾层，增加空间和氛围深度。',
     lightRaysDesc: '柔和光束扫过画布。',
-    starsDesc: '细微闪烁星点，适合夜间场景。',
+    starsDesc: '细微闪烁星点，适合夜景。',
+    save: '保存',
+    undo: '撤销',
+    redo: '重做',
+    liveWallpaperStudio: '动态壁纸工作台',
+    assetLibrary: '素材库',
+    properties: '属性',
+    assets: '资源',
+    style: '风格',
+    environment: '环境',
+    animation: '动画',
+    stylePack: '风格包',
+    wallpaperWorkspace: '壁纸工作区',
+    canvasSize: '画布尺寸',
+    canvasZoom: '画布缩放',
+    fit: '适应',
+    fill: '填充',
+    desktop169: '桌面 16:9',
+    desktop4k: '桌面 4K',
+    ultrawide219: '超宽屏 21:9',
+    phone916: '手机 9:16',
+    tablet: '平板',
+    square11: '方形 1:1',
+    portrait34: '竖版 3:4',
+    landscape43: '横版 4:3',
+    customCanvas: '自定义画布',
+    width: '宽度',
+    height: '高度',
+    cancel: '取消',
+    uploadWallpaper: '上传壁纸',
+    dragImageHere: '拖拽图片到这里',
+    clickToBrowse: '或点击浏览',
+    replaceCurrentWallpaper: '替换当前壁纸？',
+    currentWallpaper: '当前壁纸',
+    wallpaperImage: '壁纸图片',
+    dimensionsLoading: '正在读取尺寸',
+    replaceImage: '替换图片',
+    reupload: '重新上传',
+    resetPosition: '重置位置',
+    deleteImage: '删除图片',
+    assetEmpty: '从画布上传一张壁纸图片，创建第一个资源。',
+    searchStyleCases: '搜索风格案例',
+    match: '匹配',
+    favorite: '收藏',
+    preview: '预览',
+    hidePreview: '收起预览',
+    tags: '标签',
+    noMatchingStyleCases: '没有匹配的风格案例。',
+    currentEdit: '当前编辑',
+    smartMatch: '智能匹配',
+    advancedLayers: '高级图层',
+    export: '导出',
+    intelligentStyleMatch: '智能风格匹配',
+    analyzing: '分析中...',
+    analyzeCurrentWallpaper: '分析当前壁纸',
+    smartMatchEmpty: '上传壁纸图片后可生成风格推荐。',
+    recommendedFirst: '优先推荐',
+    detectedColors: '识别颜色',
+    detectedTags: '识别标签',
+    detectedMood: '识别氛围',
+    stylePacks: '风格包',
+    packManager: '风格包管理',
+    importJson: '导入 JSON',
+    exportOfficial: '导出官方包',
+    version: '版本',
+    cases: '案例数',
+    importedPack: '已导入 {name}。',
+    importPackFailed: '风格包导入失败。',
+    advancedModeTitle: '图层编辑位于右侧检查器',
+    advancedModeCopy:
+      '选择图层或特效后，可在右侧面板调整层级、锁定、可见性、样式和精细参数。',
+    staticCamera: '静止',
+    slowZoomIn: '缓慢拉近',
+    slowZoomOut: '缓慢拉远',
+    gentlePanLeft: '轻微左移',
+    gentlePanRight: '轻微右移',
+    floatingBreathing: '漂浮 / 呼吸',
+    defaultDirection: '默认',
+    left: '左',
+    right: '右',
+    up: '上',
+    down: '下',
   },
-}
+} as const
+
+type TranslationKey = keyof typeof TRANSLATIONS.en
 
 const LANGUAGE_STORAGE_KEY = 'ai-wallpaper-engine.language'
 

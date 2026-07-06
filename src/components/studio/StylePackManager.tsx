@@ -6,6 +6,7 @@ import {
   importStylePackFromJson,
 } from '../../services/stylePacks/stylePackService'
 import type { StylePack } from '../../types/StylePack'
+import { useI18n } from '../../i18n'
 
 interface StylePackManagerProps {
   refreshKey: number
@@ -16,6 +17,7 @@ export function StylePackManager({
   refreshKey,
   onPacksChange,
 }: StylePackManagerProps) {
+  const { t } = useI18n()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [packs, setPacks] = useState<StylePack[]>(getInstalledStylePacks)
   const [status, setStatus] = useState('')
@@ -31,12 +33,12 @@ export function StylePackManager({
 
     try {
       const importedPack = await importStylePackFromJson(file)
-      setStatus(`Imported ${importedPack.name}.`)
+      setStatus(t('importedPack').replace('{name}', importedPack.name))
       setPacks(getInstalledStylePacks())
       onPacksChange()
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : 'Failed to import style pack.',
+        error instanceof Error ? error.message : t('importPackFailed'),
       )
     } finally {
       if (inputRef.current) {
@@ -46,22 +48,22 @@ export function StylePackManager({
   }
 
   return (
-    <section className="style-pack-manager" aria-label="Style Pack Manager">
+    <section className="style-pack-manager" aria-label={t('packManager')}>
       <div className="style-pack-manager-header">
         <div>
-          <p className="panel-kicker">Style Packs</p>
-          <h3>Pack Manager</h3>
+          <p className="panel-kicker">{t('stylePacks')}</p>
+          <h3>{t('packManager')}</h3>
         </div>
         <div className="style-pack-actions">
           <button type="button" onClick={() => inputRef.current?.click()}>
-            Import JSON
+            {t('importJson')}
           </button>
           <button
             type="button"
             className="ghost-button"
             onClick={() => exportStylePack(OFFICIAL_STYLE_PACK)}
           >
-            Export Official
+            {t('exportOfficial')}
           </button>
         </div>
       </div>
@@ -83,11 +85,11 @@ export function StylePackManager({
             </div>
             <dl>
               <div>
-                <dt>Version</dt>
+                <dt>{t('version')}</dt>
                 <dd>{pack.version}</dd>
               </div>
               <div>
-                <dt>Cases</dt>
+                <dt>{t('cases')}</dt>
                 <dd>{pack.styleCases.length}</dd>
               </div>
             </dl>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useI18n } from '../../i18n'
 
 interface StudioDrawerProps {
   side: 'left' | 'right'
@@ -15,13 +16,15 @@ export function StudioDrawer({
   onClose,
   children,
 }: StudioDrawerProps) {
+  const { t } = useI18n()
+
   return (
     <>
       {open && (
         <button
           type="button"
           className="studio-drawer-backdrop"
-          aria-label="Close panel"
+          aria-label={t('closePanel')}
           onClick={onClose}
         />
       )}
@@ -33,7 +36,7 @@ export function StudioDrawer({
         <div className="studio-drawer-header">
           <h2>{title}</h2>
           <button type="button" onClick={onClose}>
-            Close
+            {t('closePanel')}
           </button>
         </div>
         <div className="studio-drawer-body">{children}</div>

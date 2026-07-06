@@ -206,11 +206,11 @@ export function InspectorPanel({
                 })
               }
             >
-              <option value="default">default</option>
-              <option value="left">left</option>
-              <option value="right">right</option>
-              <option value="up">up</option>
-              <option value="down">down</option>
+              <option value="default">{t('defaultDirection')}</option>
+              <option value="left">{t('left')}</option>
+              <option value="right">{t('right')}</option>
+              <option value="up">{t('up')}</option>
+              <option value="down">{t('down')}</option>
             </select>
           </label>
         </>

@@ -71,7 +71,7 @@ export function StyleCaseLibrary({
   return (
     <section className="style-case-library" aria-label="Style Case Library">
       <div className="style-case-search">
-        <label htmlFor="style-case-search">Search Style Cases</label>
+        <label htmlFor="style-case-search">{t('searchStyleCases')}</label>
         <input
           id="style-case-search"
           type="search"
@@ -99,7 +99,9 @@ export function StyleCaseLibrary({
                   {styleCase.previewEmoji}
                 </span>
                 {matchScore !== undefined && (
-                  <strong>{Math.round(matchScore * 100)}% Match</strong>
+                  <strong>
+                    {Math.round(matchScore * 100)}% {t('match')}
+                  </strong>
                 )}
               </div>
 
@@ -110,7 +112,7 @@ export function StyleCaseLibrary({
                 </div>
               </div>
 
-              <div className="style-case-tags" aria-label="Tags">
+              <div className="style-case-tags" aria-label={t('tags')}>
                 {styleCase.tags.map((tag) => (
                   <button
                     key={tag}
@@ -129,7 +131,7 @@ export function StyleCaseLibrary({
                   onClick={() => toggleFavorite(styleCase.id)}
                   aria-pressed={isFavorite}
                 >
-                  {isFavorite ? '\u2605 Favorite' : '\u2606 Favorite'}
+                  {isFavorite ? `\u2605 ${t('favorite')}` : `\u2606 ${t('favorite')}`}
                 </button>
                 <button
                   type="button"
@@ -138,7 +140,7 @@ export function StyleCaseLibrary({
                     setPreviewCaseId(previewOpen ? null : styleCase.id)
                   }
                 >
-                  {previewOpen ? 'Hide Preview' : 'Preview'}
+                  {previewOpen ? t('hidePreview') : t('preview')}
                 </button>
                 <button
                   type="button"
@@ -152,11 +154,11 @@ export function StyleCaseLibrary({
               {previewOpen && (
                 <div className="style-case-preview">
                   <p>
-                    <strong>Camera</strong>
+                    <strong>{t('camera')}</strong>
                     <span>{styleCase.camera.type}</span>
                   </p>
                   <p>
-                    <strong>Effects</strong>
+                    <strong>{t('effects')}</strong>
                     <span>
                       {styleCase.layers
                         .map((layer) => layer.type)
@@ -171,7 +173,7 @@ export function StyleCaseLibrary({
       </div>
 
       {visibleCases.length === 0 && (
-        <p className="style-case-empty">No matching style cases.</p>
+        <p className="style-case-empty">{t('noMatchingStyleCases')}</p>
       )}
     </section>
   )

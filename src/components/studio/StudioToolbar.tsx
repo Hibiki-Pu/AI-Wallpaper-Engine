@@ -19,19 +19,19 @@ export function StudioToolbar({
         <span aria-hidden="true">AI</span>
         <div>
           <strong>{t('appName')}</strong>
-          <small>Live wallpaper studio</small>
+          <small>{t('liveWallpaperStudio')}</small>
         </div>
       </div>
 
       <div className="studio-toolbar-actions">
         <button type="button" className="studio-tool-button" disabled>
-          Save
+          {t('save')}
         </button>
         <button type="button" className="studio-tool-button" disabled>
-          Undo
+          {t('undo')}
         </button>
         <button type="button" className="studio-tool-button" disabled>
-          Redo
+          {t('redo')}
         </button>
         <LanguageToggle />
         <ThemeToggle />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { StudioCanvas } from '../components/studio/StudioCanvas'
 import { StudioDrawer } from '../components/studio/StudioDrawer'
 import { FloatingPanelButton } from '../components/studio/FloatingPanelButton'
@@ -135,115 +135,22 @@ const EFFECT_PRESETS: Record<
   },
 }
 
-const EFFECT_LIBRARY: EffectLibraryItem[] = [
-  {
-    type: 'glow_particles',
-    name: 'Glow Particles',
-    description: 'Soft drifting light points for a gentle magical layer.',
-    icon: '✨',
-  },
-  {
-    type: 'petals',
-    name: 'Petals',
-    description: 'Slow falling petal shapes for calm nature motion.',
-    icon: '🌸',
-  },
-  {
-    type: 'snow',
-    name: 'Snow',
-    description: 'Light flakes falling across the wallpaper.',
-    icon: '❄️',
-  },
-  {
-    type: 'rain',
-    name: 'Rain',
-    description: 'Fast diagonal drops for a rainy ambience.',
-    icon: '🌧️',
-  },
-  {
-    type: 'fireflies',
-    name: 'Fireflies',
-    description: 'Warm wandering sparks near the lower scene.',
-    icon: '🟡',
-  },
-  {
-    type: 'fog',
-    name: 'Fog',
-    description: 'Wide drifting mist layers for atmospheric depth.',
-    icon: '🌫️',
-  },
-  {
-    type: 'light_rays',
-    name: 'Light Rays',
-    description: 'Soft beams sweeping through the canvas.',
-    icon: '☀️',
-  },
-  {
-    type: 'stars',
-    name: 'Stars',
-    description: 'Subtle twinkling points for night scenes.',
-    icon: '⭐',
-  },
-]
-
-const createEffectLibrary = (
-  t: ReturnType<typeof useI18n>['t'],
-): EffectLibraryItem[] => [
-  {
-    type: 'glow_particles',
-    name: t('glowParticles'),
-    description: t('glowParticlesDesc'),
-    icon: '✨',
-  },
-  {
-    type: 'petals',
-    name: t('petals'),
-    description: t('petalsDesc'),
-    icon: '🌸',
-  },
-  {
-    type: 'snow',
-    name: t('snow'),
-    description: t('snowDesc'),
-    icon: '❄️',
-  },
-  {
-    type: 'rain',
-    name: t('rain'),
-    description: t('rainDesc'),
-    icon: '🌧️',
-  },
-  {
-    type: 'fireflies',
-    name: t('fireflies'),
-    description: t('firefliesDesc'),
-    icon: '🟡',
-  },
-  {
-    type: 'fog',
-    name: t('fog'),
-    description: t('fogDesc'),
-    icon: '🌫️',
-  },
-  {
-    type: 'light_rays',
-    name: t('lightRays'),
-    description: t('lightRaysDesc'),
-    icon: '☀️',
-  },
-  {
-    type: 'stars',
-    name: t('stars'),
-    description: t('starsDesc'),
-    icon: '⭐',
-  },
-]
-
 const createLayerId = (type: WallpaperLayer['type']) =>
   `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
-void EFFECT_LIBRARY
-void createEffectLibrary
+const readImageDimensions = (
+  imageUrl: string,
+): Promise<{ width: number; height: number }> =>
+  new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () =>
+      resolve({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      })
+    image.onerror = reject
+    image.src = imageUrl
+  })
 
 const getEffectName = (type: WallpaperEffectLayerType) =>
   BASE_EFFECT_LIBRARY.find((effect) => effect.type === type)?.name ?? type
@@ -371,6 +278,10 @@ export function WallpaperStudioPage() {
   const [wallpaperSpec, setWallpaperSpec] = useState<WallpaperSpec | null>(null)
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null)
   const [activeImageFileName, setActiveImageFileName] = useState('')
+  const [activeImageDimensions, setActiveImageDimensions] = useState<{
+    width: number
+    height: number
+  } | null>(null)
   const [smartMatch, setSmartMatch] = useState<SmartMatch | null>(null)
   const [isSmartMatchAnalyzing, setIsSmartMatchAnalyzing] = useState(false)
   const preset: ScenePreset = 'dreamy'
@@ -380,6 +291,7 @@ export function WallpaperStudioPage() {
   const [stylePacksVersion, setStylePacksVersion] = useState(0)
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false)
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false)
+  const [canvasResetSignal, setCanvasResetSignal] = useState(0)
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
   const [openSections, setOpenSections] = useState<
     Record<StudioInspectorSection, boolean>
@@ -415,8 +327,14 @@ export function WallpaperStudioPage() {
   }
 
   const handleImageSelected = (file: File) => {
+    if (wallpaperSpec) {
+      handleImageReplace(file)
+      return
+    }
+
     const imageUrl = URL.createObjectURL(file)
     setActiveImageFileName(file.name)
+    setActiveImageDimensions(null)
     setSmartMatch(null)
     setActiveImageUrl((currentImageUrl) => {
       if (currentImageUrl) {
@@ -440,7 +358,62 @@ export function WallpaperStudioPage() {
     )
     setWallpaperSpec(nextSpec)
     setSelectedLayerId(nextSpec.layers[1]?.id ?? nextSpec.layers[0]?.id ?? null)
+    void readImageDimensions(imageUrl)
+      .then(setActiveImageDimensions)
+      .catch(() => setActiveImageDimensions(null))
     void runSmartMatch(imageUrl, file.name)
+  }
+
+  const handleImageReplace = (file: File) => {
+    if (!wallpaperSpec) {
+      handleImageSelected(file)
+      return
+    }
+
+    const imageUrl = URL.createObjectURL(file)
+    setActiveImageFileName(file.name)
+    setActiveImageDimensions(null)
+    setSmartMatch(null)
+    setActiveImageUrl((currentImageUrl) => {
+      if (currentImageUrl) {
+        URL.revokeObjectURL(currentImageUrl)
+      }
+
+      return imageUrl
+    })
+    setWallpaperSpec((currentSpec) =>
+      currentSpec
+        ? withSyncedEffects({
+            ...currentSpec,
+            imageUrl,
+          })
+        : currentSpec,
+    )
+    setCanvasResetSignal((currentSignal) => currentSignal + 1)
+    void readImageDimensions(imageUrl)
+      .then(setActiveImageDimensions)
+      .catch(() => setActiveImageDimensions(null))
+    void runSmartMatch(imageUrl, file.name)
+  }
+
+  const handleImageDelete = () => {
+    setActiveImageUrl((currentImageUrl) => {
+      if (currentImageUrl) {
+        URL.revokeObjectURL(currentImageUrl)
+      }
+
+      return null
+    })
+    setActiveImageFileName('')
+    setActiveImageDimensions(null)
+    setSmartMatch(null)
+    setWallpaperSpec(null)
+    setSelectedLayerId(null)
+    setCanvasResetSignal((currentSignal) => currentSignal + 1)
+  }
+
+  const handleResetCanvasPosition = () => {
+    setCanvasResetSignal((currentSignal) => currentSignal + 1)
   }
 
   const handleEffectSelect = (type: WallpaperEffectLayerType) => {
@@ -761,26 +734,28 @@ export function WallpaperStudioPage() {
       <section className="studio-canvas-shell">
         <FloatingPanelButton
           side="left"
-          icon="🎨"
-          label="素材库"
+          icon="🖼️"
+          label={t('assetLibrary')}
           onClick={() => setLeftDrawerOpen(true)}
         />
         <FloatingPanelButton
           side="right"
           icon="⚙"
-          label="属性"
+          label={t('properties')}
           onClick={() => setRightDrawerOpen(true)}
         />
 
         <StudioCanvas
           spec={wallpaperSpec}
           onImageSelected={handleImageSelected}
+          onImageReplace={handleImageReplace}
+          resetSignal={canvasResetSignal}
         />
       </section>
 
       <StudioDrawer
         side="left"
-        title="素材库"
+        title={t('assetLibrary')}
         open={leftDrawerOpen}
         onClose={() => setLeftDrawerOpen(false)}
       >
@@ -788,6 +763,8 @@ export function WallpaperStudioPage() {
           effects={effectLibrary}
           spec={wallpaperSpec}
           selectedLayerId={selectedLayerId}
+          activeImageFileName={activeImageFileName}
+          activeImageDimensions={activeImageDimensions}
           activeStyleCaseId={activeStyleCaseId}
           smartMatchScores={smartMatchScores}
           stylePacksVersion={stylePacksVersion}
@@ -795,6 +772,9 @@ export function WallpaperStudioPage() {
             setStylePacksVersion((currentVersion) => currentVersion + 1)
           }
           onStyleCaseApply={handleStyleCaseApply}
+          onImageReplace={handleImageReplace}
+          onImageDelete={handleImageDelete}
+          onResetCanvasPosition={handleResetCanvasPosition}
           onCameraChange={handleCameraChange}
           onEffectSelect={handleEffectSelect}
           onEffectToggle={handleEffectToggle}
@@ -806,7 +786,7 @@ export function WallpaperStudioPage() {
 
       <StudioDrawer
         side="right"
-        title="属性面板"
+        title={t('properties')}
         open={rightDrawerOpen}
         onClose={() => setRightDrawerOpen(false)}
       >
@@ -833,3 +813,4 @@ export function WallpaperStudioPage() {
     </main>
   )
 }
+
