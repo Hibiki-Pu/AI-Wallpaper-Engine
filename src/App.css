@@ -2152,7 +2152,7 @@
 .workspace {
   position: relative;
   display: grid;
-  grid-template-rows: auto minmax(520px, 1fr);
+  grid-template-rows: auto minmax(520px, 1fr) auto;
   gap: 14px;
   width: min(100%, 1680px);
   min-height: clamp(680px, 82vh, 1120px);
@@ -2464,22 +2464,25 @@
 }
 
 .zoom-controls {
-  position: absolute;
-  right: 28px;
-  bottom: 28px;
-  z-index: 12;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  max-width: min(420px, calc(100% - 56px));
+  max-width: 100%;
   padding: 8px;
   background: var(--panel-bg);
   border: 1px solid var(--border-soft);
   border-radius: 999px;
   box-shadow: var(--shadow-panel);
   backdrop-filter: blur(18px);
+}
+
+.workspace-footer {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  padding: 0 4px 2px;
 }
 
 .zoom-controls select {

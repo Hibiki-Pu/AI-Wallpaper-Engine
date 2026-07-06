@@ -56,12 +56,14 @@ export function Workspace({
         onImageSelected={onImageSelected}
         onImageReplace={onImageReplace}
       />
-      <ZoomControls
-        zoom={zoom}
-        mode={zoomMode}
-        onZoomChange={onZoomChange}
-        onModeChange={onZoomModeChange}
-      />
+      <div className="workspace-footer">
+        <ZoomControls
+          zoom={zoom}
+          mode={zoomMode}
+          onZoomChange={onZoomChange}
+          onModeChange={onZoomModeChange}
+        />
+      </div>
     </section>
   )
 }
