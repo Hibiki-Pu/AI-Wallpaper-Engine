@@ -1906,7 +1906,8 @@
   accent-color: var(--accent);
 }
 
-.inspector-field input[type='number'] {
+.inspector-field input[type='number'],
+.inspector-field input[type='text'] {
   min-height: 34px;
   padding: 0 10px;
   color: var(--text-main);
@@ -2080,6 +2081,108 @@
   font-size: 11px;
   font-weight: 900;
   line-height: 1.35;
+}
+
+.runtime-settings-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background: rgba(50, 200, 255, 0.08);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+}
+
+.runtime-settings-panel h3 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.runtime-health-card,
+.runtime-command-preview,
+.runtime-requirement-list {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  background: rgba(4, 15, 28, 0.2);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+}
+
+.runtime-health-card.status-available {
+  border-color: rgba(116, 231, 255, 0.5);
+  box-shadow: 0 0 18px rgba(50, 200, 255, 0.18);
+}
+
+.runtime-health-card.status-unavailable {
+  border-color: rgba(248, 113, 113, 0.34);
+}
+
+.runtime-health-card.status-unable_to_check {
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.runtime-health-card strong,
+.runtime-command-preview strong,
+.runtime-requirement-list strong {
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.runtime-health-card span,
+.runtime-command-preview span {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.runtime-requirement-list p {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.runtime-requirement-list small {
+  color: var(--accent-strong);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.runtime-command-preview code {
+  display: block;
+  min-width: 0;
+  padding: 9px;
+  color: #dce9f5;
+  background: var(--code-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  font: 11px/1.5 ui-monospace, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.runtime-reset-button {
+  width: 100%;
+  min-height: 34px;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .motion-layer-list {

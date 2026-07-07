@@ -47,7 +47,7 @@ export interface AnimationProviderManifest {
   name: string
   kind: string
   status: 'available' | 'experimental' | 'disabled'
-  runtime: 'localCli' | 'localService' | 'docker' | 'disabled'
+  runtime: 'localCli' | 'localService' | 'docker' | 'mock' | 'disabled'
   requiresExternalRuntime: boolean
   supportedInputs: string[]
   supportedOutputs: string[]

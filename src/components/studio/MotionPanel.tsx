@@ -1,12 +1,24 @@
 ﻿import { useMemo, useState } from 'react'
 import { getAnimationProvider } from '../../providers/animation/providerFactory'
-import { checkLivePortraitRuntime } from '../../providers/animation/livePortrait/livePortraitRuntimeBridge'
+import { createLivePortraitProvider } from '../../providers/animation/livePortrait/livePortraitProvider'
+import {
+  buildLivePortraitCommand,
+  checkLivePortraitRuntime,
+} from '../../providers/animation/livePortrait/livePortraitRuntimeBridge'
+import { RuntimeSettingsPanel } from './RuntimeSettingsPanel'
+import {
+  getRuntimeConfig,
+  resetRuntimeConfig,
+  updateRuntimeConfig,
+} from '../../runtime/runtimeConfigStore'
 import type {
   AnimationProviderName,
   AnimationTargetType,
 } from '../../types/AnimationProvider'
 import type { MotionLayer } from '../../types/MotionLayer'
 import type { RuntimeJobStatus } from '../../types/RuntimeJob'
+import type { RuntimeConfig } from '../../types/RuntimeConfig'
+import type { LivePortraitMotionPreset } from '../../providers/animation/livePortrait/livePortraitTypes'
 import { useI18n } from '../../i18n'
 
 const TARGET_OPTIONS: AnimationTargetType[] = [
@@ -37,6 +49,12 @@ const PROVIDER_OPTIONS: Array<{
   { value: 'sam', label: 'sam (coming soon)', disabled: true },
 ]
 
+const MOTION_TO_LIVEPORTRAIT_PRESET: Record<string, LivePortraitMotionPreset> = {
+  idle_breathing: 'subtle_breathing',
+  blink: 'blink',
+  gentle_head_motion: 'slight_head_turn',
+}
+
 const createMotionLayerName = (motionType: string, index: number) =>
   `${motionType.replaceAll('_', ' ')} ${index + 1}`
 
@@ -51,6 +69,8 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
   const [motionType, setMotionType] = useState('idle_breathing')
   const [providerName, setProviderName] =
     useState<AnimationProviderName>('mock')
+  const [livePortraitRuntimeConfig, setLivePortraitRuntimeConfig] =
+    useState<RuntimeConfig>(() => getRuntimeConfig('liveportrait'))
   const [strength, setStrength] = useState(0.3)
   const [duration, setDuration] = useState(6)
   const [loop, setLoop] = useState(true)
@@ -62,18 +82,50 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
 
   const canGenerate = Boolean(imageUrl) && !isGenerating
   const selectedProvider = useMemo(
-    () => getAnimationProvider(providerName),
-    [providerName],
+    () =>
+      providerName === 'liveportrait' || providerName === 'live_portrait'
+        ? createLivePortraitProvider(livePortraitRuntimeConfig)
+        : getAnimationProvider(providerName),
+    [livePortraitRuntimeConfig, providerName],
   )
-  const livePortraitHealth = useMemo(() => checkLivePortraitRuntime(), [])
+  const livePortraitHealth = useMemo(
+    () => checkLivePortraitRuntime(livePortraitRuntimeConfig),
+    [livePortraitRuntimeConfig],
+  )
+  const livePortraitInput = useMemo(
+    () => ({
+      sourceAssetId: 'current-wallpaper',
+      sourceImageUrl: imageUrl ?? '<source-image>',
+      preset:
+        MOTION_TO_LIVEPORTRAIT_PRESET[motionType] ?? 'subtle_breathing',
+      strength,
+      duration,
+      loop,
+    }),
+    [duration, imageUrl, loop, motionType, strength],
+  )
+  const commandPreview = useMemo(
+    () => buildLivePortraitCommand(livePortraitInput, livePortraitRuntimeConfig),
+    [livePortraitInput, livePortraitRuntimeConfig],
+  )
   const providerStatus =
     providerName === 'mock'
       ? t('mockProviderAvailable')
       : providerName === 'liveportrait' || providerName === 'live_portrait'
         ? livePortraitHealth.available
           ? t('livePortraitExperimental')
-          : t('runtimeNotConfigured')
+          : livePortraitHealth.message
         : t('comingSoon')
+
+  const handleRuntimeConfigChange = (patch: Partial<RuntimeConfig>) => {
+    setLivePortraitRuntimeConfig(
+      updateRuntimeConfig('liveportrait', patch),
+    )
+  }
+
+  const handleRuntimeConfigReset = () => {
+    setLivePortraitRuntimeConfig(resetRuntimeConfig('liveportrait'))
+  }
 
   const handleGenerate = async () => {
     if (!imageUrl || isGenerating) {
@@ -190,6 +242,16 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
         </select>
       </label>
 
+      {(providerName === 'liveportrait' || providerName === 'live_portrait') && (
+        <RuntimeSettingsPanel
+          config={livePortraitRuntimeConfig}
+          health={livePortraitHealth}
+          commandPreview={commandPreview}
+          onChange={handleRuntimeConfigChange}
+          onReset={handleRuntimeConfigReset}
+        />
+      )}
+
       <label className="inspector-field">
         <span>{t('strength')}</span>
         <input
@@ -271,4 +333,3 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     </section>
   )
 }
-

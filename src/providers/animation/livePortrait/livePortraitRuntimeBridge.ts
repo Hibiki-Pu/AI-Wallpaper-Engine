@@ -1,7 +1,10 @@
 import type { MotionLayer } from '../../../types/MotionLayer'
 import type { RuntimeJobInput } from '../../../types/RuntimeJob'
-import { checkRuntimeHealth } from '../../../runtime/localRuntimeBridge'
 import type {
+  RuntimeRequirement,
+} from '../../../types/RuntimeConfig'
+import type {
+  LivePortraitCommandPreview,
   LivePortraitHealthStatus,
   LivePortraitInput,
   LivePortraitOutput,
@@ -9,31 +12,185 @@ import type {
 } from './livePortraitTypes'
 
 export const DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG: LivePortraitRuntimeConfig = {
+  providerId: 'liveportrait',
   mode: 'disabled',
   enabled: false,
+  runtimePath: '',
+  pythonCommand: 'python',
+  entryFile: 'inference.py',
+  outputDir: '',
+  createdAt: new Date(0).toISOString(),
+  updatedAt: new Date(0).toISOString(),
 }
+
+const now = () => new Date().toISOString()
+
+const hasBrowserFileSystemAccess = () => false
+
+const createRequirement = (
+  id: string,
+  label: string,
+  status: RuntimeRequirement['status'],
+  message: string,
+): RuntimeRequirement => ({
+  id,
+  label,
+  status,
+  message,
+})
 
 export function checkLivePortraitRuntime(
   config: LivePortraitRuntimeConfig = DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
 ): LivePortraitHealthStatus {
-  if (!config.enabled || config.mode === 'disabled') {
-    const health = checkRuntimeHealth('liveportrait')
+  const requirements: RuntimeRequirement[] = []
+  const enabled = Boolean(config.enabled) && config.mode !== 'disabled'
+  const requiresLocalPaths =
+    config.mode === 'localCli' || config.mode === 'docker'
+  const requiresPython = config.mode === 'localCli' || config.mode === 'docker'
+  const requiresOutput = config.mode !== 'disabled' && config.mode !== 'mock'
 
+  requirements.push(
+    createRequirement(
+      'mode',
+      'Runtime mode enabled',
+      enabled ? 'satisfied' : 'missing',
+      enabled ? `Mode: ${config.mode}` : 'Runtime mode is disabled.',
+    ),
+  )
+
+  requirements.push(
+    createRequirement(
+      'runtimePath',
+      'Runtime path configured',
+      !requiresLocalPaths
+        ? 'reserved'
+        : config.runtimePath
+          ? 'unable_to_check'
+          : 'missing',
+      !requiresLocalPaths
+        ? 'Not required for this runtime mode.'
+        : config.runtimePath
+          ? 'Runtime path is configured, but browser cannot verify local paths.'
+          : 'Runtime path is required for local CLI or Docker mode.',
+    ),
+  )
+
+  requirements.push(
+    createRequirement(
+      'entryFile',
+      'Entry file configured',
+      !requiresPython
+        ? 'reserved'
+        : config.entryFile
+          ? 'unable_to_check'
+          : 'missing',
+      !requiresPython
+        ? 'Not required for this runtime mode.'
+        : config.entryFile
+          ? 'Entry file is configured, but browser cannot verify local files.'
+          : 'Entry file is required, for example inference.py.',
+    ),
+  )
+
+  requirements.push(
+    createRequirement(
+      'pythonCommand',
+      'Python command configured',
+      !requiresPython
+        ? 'reserved'
+        : config.pythonCommand
+          ? 'satisfied'
+          : 'missing',
+      !requiresPython
+        ? 'Not required for this runtime mode.'
+        : config.pythonCommand
+          ? `Python command: ${config.pythonCommand}`
+          : 'Python command is required for local CLI mode.',
+    ),
+  )
+
+  requirements.push(
+    createRequirement(
+      'outputDir',
+      'Output directory configured',
+      !requiresOutput
+        ? 'reserved'
+        : config.outputDir
+          ? 'unable_to_check'
+          : 'missing',
+      !requiresOutput
+        ? 'Not required for this runtime mode.'
+        : config.outputDir
+          ? 'Output directory is configured, but browser cannot verify local paths.'
+          : 'Output directory is required for generated preview assets.',
+    ),
+  )
+
+  requirements.push(
+    createRequirement(
+      'ffmpeg',
+      'FFmpeg requirement',
+      'reserved',
+      'Reserved for Sprint 21 runtime checks.',
+    ),
+  )
+
+  requirements.push(
+    createRequirement(
+      'pretrainedWeights',
+      'Pretrained weights',
+      'reserved',
+      'Reserved for Sprint 21 runtime checks.',
+    ),
+  )
+
+  const missingRequirements = requirements.filter(
+    (requirement) => requirement.status === 'missing',
+  )
+  const unableToCheckRequirements = requirements.filter(
+    (requirement) => requirement.status === 'unable_to_check',
+  )
+
+  if (missingRequirements.length > 0) {
     return {
-      available: health.available,
-      mode: 'disabled',
-      message: health.message,
+      providerId: 'liveportrait',
+      available: false,
+      mode: config.mode,
+      status: 'unavailable',
+      message: 'Runtime not configured',
       runtimePath: config.runtimePath,
-      missingRequirements: health.missingRequirements,
+      checkedAt: now(),
+      requirements,
+    }
+  }
+
+  if (
+    config.mode !== 'mock' &&
+    !hasBrowserFileSystemAccess() &&
+    unableToCheckRequirements.length > 0
+  ) {
+    return {
+      providerId: 'liveportrait',
+      available: false,
+      mode: config.mode,
+      status: 'unable_to_check',
+      message:
+        'Runtime config is present, but browser cannot verify local file paths.',
+      runtimePath: config.runtimePath,
+      checkedAt: now(),
+      requirements,
     }
   }
 
   return {
+    providerId: 'liveportrait',
     available: true,
     mode: config.mode,
-    message: 'Mock local runtime bridge available',
-    version: 'mock-runtime-v0',
+    status: 'available',
+    message: 'Runtime configuration is available.',
     runtimePath: config.runtimePath,
+    checkedAt: now(),
+    requirements,
   }
 }
 
@@ -70,37 +227,69 @@ export function validateLivePortraitInput(input: LivePortraitInput): string[] {
 export function buildLivePortraitCommand(
   input: LivePortraitInput,
   config: LivePortraitRuntimeConfig = DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
-): string[] {
-  const executable =
-    config.mode === 'docker'
-      ? 'docker'
-      : config.runtimePath || 'liveportrait'
+): LivePortraitCommandPreview {
+  if (config.mode === 'docker') {
+    const args = [
+      'run',
+      '--rm',
+      '-v',
+      `${config.runtimePath || '<runtime-path>'}:/workspace`,
+      'liveportrait-runtime',
+      config.pythonCommand || 'python',
+      config.entryFile || 'inference.py',
+    ]
 
-  const args = [
-    executable,
+    return {
+      command: 'docker',
+      args: appendLivePortraitArgs(args, input, config),
+      cwd: config.runtimePath || undefined,
+    }
+  }
+
+  const args = [config.entryFile || 'inference.py']
+
+  return {
+    command: config.pythonCommand || 'python',
+    args: appendLivePortraitArgs(args, input, config),
+    cwd: config.runtimePath || undefined,
+  }
+}
+
+const appendLivePortraitArgs = (
+  args: string[],
+  input: LivePortraitInput,
+  config: LivePortraitRuntimeConfig,
+) => {
+  const nextArgs = [
+    ...args,
     '--source',
-    input.sourceImagePath ?? input.sourceImageUrl ?? '',
+    input.sourceImagePath ?? input.sourceImageUrl ?? '<source-image>',
     '--preset',
     input.preset,
     '--strength',
     String(input.strength),
     '--duration',
     String(input.duration),
+    '--output',
+    config.outputDir || '<output-dir>',
   ]
 
   if (input.loop) {
-    args.push('--loop')
+    nextArgs.push('--loop')
   }
 
   if (input.drivingVideoPath || input.drivingVideoUrl) {
-    args.push('--driving', input.drivingVideoPath ?? input.drivingVideoUrl ?? '')
+    nextArgs.push(
+      '--driving',
+      input.drivingVideoPath ?? input.drivingVideoUrl ?? '',
+    )
   }
 
   if (input.motionTemplateId) {
-    args.push('--motion-template', input.motionTemplateId)
+    nextArgs.push('--motion-template', input.motionTemplateId)
   }
 
-  return args
+  return nextArgs
 }
 
 export function buildLivePortraitRuntimeJobInput(
@@ -113,7 +302,7 @@ export function buildLivePortraitRuntimeJobInput(
     runtimeMode: config.mode === 'disabled' ? 'disabled' : config.mode,
     payload: {
       ...input,
-      command: buildLivePortraitCommand(input, config),
+      commandPreview: buildLivePortraitCommand(input, config),
     },
     metadata: {
       sourceAssetId: input.sourceAssetId,

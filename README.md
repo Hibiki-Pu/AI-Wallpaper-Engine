@@ -46,6 +46,7 @@ AI Wallpaper Engine 的目标很简单：
 | Animation Provider Framework | Done |
 | LivePortrait Integration Adapter | Experimental |
 | Local Runtime Job Pipeline | Mock |
+| LivePortrait Local Runtime MVP | Config / Health Check |
 | Wallpaper Package Export | Done |
 | Dark / Light Theme | Done |
 | Responsive Studio UI | Done |
@@ -147,6 +148,20 @@ Current status:
 V0.6 Sprint 19 新增通用本地 Runtime Job Pipeline。
 
 LivePortrait、Depth Anything、SAM2 等 Provider 未来可以通过统一任务机制接入，而不需要把 Python 或模型权重写进前端。
+
+### LivePortrait Local Runtime MVP
+
+V0.6 Sprint 20 adds local runtime configuration for LivePortrait.
+
+The editor can now store runtime settings, show health check results, list missing requirements and build a command preview.
+
+It still does not clone, install, download weights or execute Python automatically.
+
+V0.6 Sprint 20 新增 LivePortrait 本地 Runtime 配置能力。
+
+编辑器可以保存运行时路径、Python 命令、入口文件和输出目录，显示健康检查结果，并生成命令预览。
+
+项目仍然不会自动 clone、安装依赖、下载权重或执行 Python。
 
 ---
 
@@ -318,6 +333,7 @@ Future versions will support:
 - Marketplace
 - LivePortrait runtime bridge
 - Local Runtime Job Pipeline
+- LivePortrait Local Runtime MVP
 - Motion Layer preview rendering
 - AI Smart Match
 - OpenCLIP
@@ -326,9 +342,9 @@ Future versions will support:
 
 Next Roadmap:
 
-- Sprint 20: runtime configuration and health panel
-- Connect one real LivePortrait runtime path behind opt-in
-- Runtime health checks and configuration
+- Sprint 21: real CLI invocation and preview video import
+- Connect one real LivePortrait runtime path behind explicit opt-in
+- Runtime logs and retry UX
 - Preview asset pipeline for motion providers
 - MotionLayer rendering bridge
 

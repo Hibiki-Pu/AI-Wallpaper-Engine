@@ -82,7 +82,30 @@ The goal is to stabilize the interface before connecting heavy local runtimes.
 
 - Runtime configuration UI
 - Runtime health panel
+- Command preview
 - Local service request protocol
 - Preview asset pipeline
 - Runtime logs and retry actions
 - First real runtime adapter behind an explicit opt-in
+
+## Sprint 20 Update
+
+The LivePortrait Local Runtime MVP adds:
+
+- `RuntimeConfig`
+- localStorage-backed runtime config store
+- LivePortrait runtime settings UI
+- Browser-safe health checks
+- Missing requirement reporting
+- Structured command preview
+
+The browser still does not execute local files. Local paths may return `unable_to_check` until a trusted desktop bridge, local service or Docker bridge is connected.
+
+## Sprint 21 Roadmap
+
+- Real CLI invocation behind explicit opt-in
+- Preview video import
+- Runtime logs
+- Retry and cancel UX
+- FFmpeg detection
+- Pretrained weight detection

@@ -1,10 +1,11 @@
 import type { MotionLayer } from '../../../types/MotionLayer'
+import type {
+  RuntimeConfig,
+  RuntimeHealthCheckResult,
+  RuntimeMode,
+} from '../../../types/RuntimeConfig'
 
-export type LivePortraitRuntimeMode =
-  | 'localCli'
-  | 'localService'
-  | 'docker'
-  | 'disabled'
+export type LivePortraitRuntimeMode = Exclude<RuntimeMode, 'mock'>
 
 export type LivePortraitMotionPreset =
   | 'subtle_breathing'
@@ -32,19 +33,16 @@ export interface LivePortraitOutput {
   metadata: Record<string, unknown>
 }
 
-export interface LivePortraitRuntimeConfig {
-  mode: LivePortraitRuntimeMode
-  runtimePath?: string
+export interface LivePortraitRuntimeConfig extends RuntimeConfig {
+  mode: RuntimeMode
   serviceUrl?: string
   dockerImage?: string
-  enabled?: boolean
 }
 
-export interface LivePortraitHealthStatus {
-  available: boolean
-  mode: LivePortraitRuntimeMode
-  message: string
-  version?: string
-  runtimePath?: string
-  missingRequirements?: string[]
+export type LivePortraitHealthStatus = RuntimeHealthCheckResult
+
+export interface LivePortraitCommandPreview {
+  command: string
+  args: string[]
+  cwd?: string
 }

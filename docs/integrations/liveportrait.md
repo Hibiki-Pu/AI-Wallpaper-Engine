@@ -101,14 +101,59 @@ Sprint 19 adds the Local Runtime Job Pipeline:
 
 ## Sprint 20 Runtime Plan
 
-Sprint 20 can connect one real runtime path:
+Sprint 20 adds the LivePortrait Local Runtime MVP:
 
-1. Choose local CLI, local service or Docker.
-2. Add runtime config UI or config file.
-3. Implement real runtime health checks.
-4. Send `LivePortraitInput`.
-5. Normalize runtime output into `MotionLayer`.
-6. Add preview asset handling.
+1. Choose disabled, mock, local CLI, local service or Docker mode.
+2. Configure runtime path, Python command, entry file and output directory.
+3. Run a browser-safe health check.
+4. Show missing requirements or unable-to-check results.
+5. Build a structured command preview.
+6. Keep fallback MotionLayer behavior when runtime is unavailable.
+
+The app still does not execute LivePortrait directly.
+
+## External Runtime Configuration
+
+The editor stores runtime configuration locally:
+
+- Runtime Mode
+- Runtime Path
+- Python Command
+- Entry File
+- Output Dir
+- Enabled flag
+
+Browser builds cannot directly verify arbitrary local paths, so local CLI and Docker modes can return `unable_to_check` until a trusted desktop bridge or local service is added.
+
+## Command Preview
+
+Sprint 20 builds a command preview only:
+
+```json
+{
+  "command": "python",
+  "args": [
+    "inference.py",
+    "--source",
+    "...",
+    "--output",
+    "..."
+  ],
+  "cwd": "D:\\LivePortrait"
+}
+```
+
+The preview helps users understand what will be executed later, but no process is started in Sprint 20.
+
+## Sprint 21 Runtime Plan
+
+Sprint 21 can add the first real runtime execution path:
+
+1. Explicit opt-in runtime execution.
+2. Local CLI invocation through a safe desktop/backend bridge.
+3. Runtime logs.
+4. Preview video import.
+5. Better FFmpeg and pretrained weights checks.
 
 ## Risks
 

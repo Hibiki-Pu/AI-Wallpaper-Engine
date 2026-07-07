@@ -102,6 +102,10 @@ export function createLivePortraitProvider(
         buildLivePortraitRuntimeJobInput(input, runtimeConfig),
       )
       const health = checkLivePortraitRuntime(runtimeConfig)
+      const commandPreview = buildLivePortraitRuntimeJobInput(
+        input,
+        runtimeConfig,
+      ).payload.commandPreview
       const completedRuntimeJob = health.available
         ? await submitRuntimeJob(runtimeJob)
         : failRuntimeJob(runtimeJob.id, {
@@ -125,6 +129,7 @@ export function createLivePortraitProvider(
         runtimeMode: health.mode,
         fallback,
         runtimeMessage: health.message,
+        commandPreview,
       }
       const normalized = normalizeLivePortraitOutput(
         {
