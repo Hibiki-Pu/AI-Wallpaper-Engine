@@ -6,6 +6,7 @@ import type {
   AnimationTargetType,
 } from '../../types/AnimationProvider'
 import type { MotionLayer } from '../../types/MotionLayer'
+import type { RuntimeJobStatus } from '../../types/RuntimeJob'
 import { useI18n } from '../../i18n'
 
 const TARGET_OPTIONS: AnimationTargetType[] = [
@@ -55,6 +56,8 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
   const [loop, setLoop] = useState(true)
   const [layers, setLayers] = useState<MotionLayer[]>([])
   const [status, setStatus] = useState('')
+  const [jobStatus, setJobStatus] =
+    useState<RuntimeJobStatus | 'fallback'>('idle')
   const [isGenerating, setIsGenerating] = useState(false)
 
   const canGenerate = Boolean(imageUrl) && !isGenerating
@@ -78,7 +81,11 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     }
 
     setIsGenerating(true)
+    setJobStatus('queued')
     setStatus(t('motionGenerating'))
+    const runningTimer = globalThis.setTimeout(() => {
+      setJobStatus('running')
+    }, 120)
 
     try {
       const result = await selectedProvider.generate({
@@ -92,6 +99,7 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
       })
 
       if (result.status !== 'completed' || !result.motionSpec) {
+        setJobStatus('failed')
         setStatus(result.errorMessage ?? t('motionGenerateFailed'))
         return
       }
@@ -110,9 +118,15 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
           motionSpec: result.motionSpec,
         }
 
+      const isFallback = Boolean(
+        nextLayer.params?.fallback ?? result.motionSpec.metadata.fallback,
+      )
+
       setLayers((currentLayers) => [nextLayer, ...currentLayers])
+      setJobStatus(isFallback ? 'fallback' : 'completed')
       setStatus(result.errorMessage ?? t('motionLayerCreated'))
     } finally {
+      globalThis.clearTimeout(runningTimer)
       setIsGenerating(false)
     }
   }
@@ -220,6 +234,11 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
       </button>
 
       {!imageUrl && <p className="motion-status">{t('motionNeedsImage')}</p>}
+      {jobStatus !== 'idle' && (
+        <p className={`motion-job-status status-${jobStatus}`}>
+          {t('runtimeJobStatus')}: {t(jobStatus)}
+        </p>
+      )}
       {status && <p className="motion-status">{status}</p>}
 
       <div className="motion-layer-list">

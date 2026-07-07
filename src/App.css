@@ -2045,6 +2045,36 @@
   border-radius: 12px;
 }
 
+.motion-job-status {
+  margin: 0;
+  padding: 8px 10px;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.motion-job-status.status-completed {
+  color: var(--button-text);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-color: transparent;
+}
+
+.motion-job-status.status-failed {
+  color: #ffe8ef;
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(248, 113, 113, 0.36);
+}
+
+.motion-job-status.status-fallback {
+  color: #fff7d6;
+  background: rgba(245, 158, 11, 0.22);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
 .motion-provider-status {
   color: var(--accent-strong);
   font-size: 11px;

@@ -45,6 +45,7 @@ AI Wallpaper Engine 的目标很简单：
 | Smart Match | Mock |
 | Animation Provider Framework | Done |
 | LivePortrait Integration Adapter | Experimental |
+| Local Runtime Job Pipeline | Mock |
 | Wallpaper Package Export | Done |
 | Dark / Light Theme | Done |
 | Responsive Studio UI | Done |
@@ -100,6 +101,7 @@ Core flow:
 - Renderer -> Preview / Export Package
 - Style Packs -> Style Case Library -> Smart Match -> WallpaperSpec
 - Animation Providers -> Motion Layers -> future model-driven animation
+- Runtime Jobs -> Local Runtime Bridge -> Provider Output
 
 核心流程：
 
@@ -107,6 +109,7 @@ Core flow:
 - 渲染器 -> 预览 / 导出网页壁纸包
 - 风格包 -> 风格案例库 -> 智能匹配 -> WallpaperSpec
 - 动画提供方 -> 运动图层 -> 未来模型驱动动画
+- 运行时任务 -> 本地 Runtime Bridge -> Provider 输出
 
 ### Provider-first Architecture
 
@@ -127,6 +130,23 @@ V0.6 Sprint 18 新增 LivePortrait Integration Adapter。
 LivePortrait 被视为实验性的 `portrait-motion` Provider，而不是直接写进前端的模型代码。
 
 Provider-first Architecture 让外部动画能力通过稳定适配器接入，避免把 Python、PyTorch、GPU 依赖和模型权重放进 React 应用。
+
+### Local Runtime Job Pipeline
+
+V0.6 Sprint 19 adds a generic Local Runtime Job Pipeline.
+
+Providers such as LivePortrait, Depth Anything and SAM2 can create runtime jobs without embedding Python or model weights in the frontend.
+
+Current status:
+
+- In-memory RuntimeJob manager
+- Mock local runtime bridge
+- LivePortrait fallback records `runtimeJobId`, `runtimeStatus`, `runtimeMode` and `fallback`
+- MotionPanel shows Queued, Running, Completed, Failed and Fallback states
+
+V0.6 Sprint 19 新增通用本地 Runtime Job Pipeline。
+
+LivePortrait、Depth Anything、SAM2 等 Provider 未来可以通过统一任务机制接入，而不需要把 Python 或模型权重写进前端。
 
 ---
 
@@ -196,6 +216,7 @@ ai-wallpaper-engine/
 |   |-- integrations/
 |   |   `-- liveportrait.md
 |   |-- layer-system.md
+|   |-- runtime-pipeline.md
 |   `-- wallpaper-spec.md
 |-- public/
 |-- src/
@@ -214,6 +235,7 @@ ai-wallpaper-engine/
 |   |   `-- WallpaperRenderer.tsx
 |   |-- providers/
 |   |   `-- animation/
+|   |-- runtime/
 |   |-- services/
 |   |   |-- smartMatch/
 |   |   |-- stylePacks/
@@ -295,6 +317,7 @@ Future versions will support:
 - Community Style Packs
 - Marketplace
 - LivePortrait runtime bridge
+- Local Runtime Job Pipeline
 - Motion Layer preview rendering
 - AI Smart Match
 - OpenCLIP
@@ -303,7 +326,8 @@ Future versions will support:
 
 Next Roadmap:
 
-- Sprint 19: connect one real LivePortrait runtime path
+- Sprint 20: runtime configuration and health panel
+- Connect one real LivePortrait runtime path behind opt-in
 - Runtime health checks and configuration
 - Preview asset pipeline for motion providers
 - MotionLayer rendering bridge

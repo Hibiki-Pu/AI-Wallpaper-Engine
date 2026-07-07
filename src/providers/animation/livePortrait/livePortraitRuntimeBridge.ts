@@ -1,4 +1,6 @@
 import type { MotionLayer } from '../../../types/MotionLayer'
+import type { RuntimeJobInput } from '../../../types/RuntimeJob'
+import { checkRuntimeHealth } from '../../../runtime/localRuntimeBridge'
 import type {
   LivePortraitHealthStatus,
   LivePortraitInput,
@@ -15,22 +17,23 @@ export function checkLivePortraitRuntime(
   config: LivePortraitRuntimeConfig = DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
 ): LivePortraitHealthStatus {
   if (!config.enabled || config.mode === 'disabled') {
+    const health = checkRuntimeHealth('liveportrait')
+
     return {
-      available: false,
+      available: health.available,
       mode: 'disabled',
-      message: 'Runtime not configured',
+      message: health.message,
       runtimePath: config.runtimePath,
-      missingRequirements: ['runtime mode', 'runtime path or service url'],
+      missingRequirements: health.missingRequirements,
     }
   }
 
   return {
-    available: false,
+    available: true,
     mode: config.mode,
-    message:
-      'Runtime bridge is configured but execution is disabled in the frontend adapter.',
+    message: 'Mock local runtime bridge available',
+    version: 'mock-runtime-v0',
     runtimePath: config.runtimePath,
-    missingRequirements: ['backend runtime bridge'],
   }
 }
 
@@ -98,6 +101,25 @@ export function buildLivePortraitCommand(
   }
 
   return args
+}
+
+export function buildLivePortraitRuntimeJobInput(
+  input: LivePortraitInput,
+  config: LivePortraitRuntimeConfig = DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
+): RuntimeJobInput {
+  return {
+    providerId: 'liveportrait',
+    providerKind: 'portrait-motion',
+    runtimeMode: config.mode === 'disabled' ? 'disabled' : config.mode,
+    payload: {
+      ...input,
+      command: buildLivePortraitCommand(input, config),
+    },
+    metadata: {
+      sourceAssetId: input.sourceAssetId,
+      preset: input.preset,
+    },
+  }
 }
 
 export function normalizeLivePortraitOutput(

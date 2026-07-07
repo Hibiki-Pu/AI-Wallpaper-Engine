@@ -7,10 +7,16 @@ import type {
 } from '../../../types/AnimationProvider'
 import {
   DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
+  buildLivePortraitRuntimeJobInput,
   checkLivePortraitRuntime,
   normalizeLivePortraitOutput,
   validateLivePortraitInput,
 } from './livePortraitRuntimeBridge'
+import {
+  createRuntimeJob,
+  failRuntimeJob,
+} from '../../../runtime/runtimeJobManager'
+import { submitRuntimeJob } from '../../../runtime/localRuntimeBridge'
 import type {
   LivePortraitInput,
   LivePortraitMotionPreset,
@@ -92,8 +98,18 @@ export function createLivePortraitProvider(
         }
       }
 
+      const runtimeJob = createRuntimeJob(
+        buildLivePortraitRuntimeJobInput(input, runtimeConfig),
+      )
       const health = checkLivePortraitRuntime(runtimeConfig)
-      const fallback = !health.available
+      const completedRuntimeJob = health.available
+        ? await submitRuntimeJob(runtimeJob)
+        : failRuntimeJob(runtimeJob.id, {
+            code: 'RUNTIME_UNAVAILABLE',
+            message: health.message,
+            recoverable: true,
+          }) ?? runtimeJob
+      const fallback = !health.available || completedRuntimeJob.status !== 'completed'
       const metadata = {
         providerId: 'liveportrait',
         preset: input.preset,
@@ -104,6 +120,8 @@ export function createLivePortraitProvider(
         drivingVideoPath: input.drivingVideoPath,
         drivingVideoUrl: input.drivingVideoUrl,
         motionTemplateId: input.motionTemplateId,
+        runtimeJobId: completedRuntimeJob.id,
+        runtimeStatus: completedRuntimeJob.status,
         runtimeMode: health.mode,
         fallback,
         runtimeMessage: health.message,
@@ -120,6 +138,7 @@ export function createLivePortraitProvider(
       }
       const motionSpec = toMotionSpec(input, {
         ...metadata,
+        runtimeJob: completedRuntimeJob,
         motionLayer: normalized.motionLayer,
       })
 

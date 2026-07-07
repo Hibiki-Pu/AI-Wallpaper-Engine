@@ -90,13 +90,22 @@ Sprint 18 adds only the integration adapter:
 
 It does not execute LivePortrait.
 
-## Sprint 19 Runtime Plan
+## Sprint 19 Runtime Pipeline
 
-Sprint 19 can connect one real runtime path:
+Sprint 19 adds the Local Runtime Job Pipeline:
+
+1. LivePortrait creates a `RuntimeJob`.
+2. The local runtime bridge can simulate queued/running/completed jobs.
+3. Runtime unavailable cases still return fallback `MotionLayer` data.
+4. MotionLayer params record `runtimeJobId`, `runtimeStatus`, `runtimeMode` and `fallback`.
+
+## Sprint 20 Runtime Plan
+
+Sprint 20 can connect one real runtime path:
 
 1. Choose local CLI, local service or Docker.
 2. Add runtime config UI or config file.
-3. Implement runtime health check.
+3. Implement real runtime health checks.
 4. Send `LivePortraitInput`.
 5. Normalize runtime output into `MotionLayer`.
 6. Add preview asset handling.
