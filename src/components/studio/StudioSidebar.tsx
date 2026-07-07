@@ -4,6 +4,7 @@ import { EffectLibrarySidebar } from './EffectLibrarySidebar'
 import { StyleCaseLibrary } from './StyleCaseLibrary'
 import { StylePackManager } from './StylePackManager'
 import { WallpaperAssetPanel } from './WallpaperAssetPanel'
+import { MotionPanel } from './MotionPanel'
 import { useI18n } from '../../i18n'
 import type { EffectLibraryItem } from './EffectCard'
 import type {
@@ -78,7 +79,6 @@ const CATEGORY_ITEMS: Array<{
 ]
 
 const ENVIRONMENT_TYPES: WallpaperEffectLayerType[] = ['snow', 'rain', 'fog', 'stars']
-const ANIMATION_TYPES: WallpaperEffectLayerType[] = ['petals', 'fireflies', 'light_rays']
 
 export function StudioSidebar({
   effects,
@@ -108,9 +108,7 @@ export function StudioSidebar({
   const filteredEffects =
     activeCategory === 'environment'
       ? effects.filter((effect) => ENVIRONMENT_TYPES.includes(effect.type))
-      : activeCategory === 'animation'
-        ? effects.filter((effect) => ANIMATION_TYPES.includes(effect.type))
-        : effects
+      : effects
 
   return (
     <aside className="studio-sidebar" aria-label="Studio tools">
@@ -151,8 +149,7 @@ export function StudioSidebar({
         )}
 
         {(activeCategory === 'effects' ||
-          activeCategory === 'environment' ||
-          activeCategory === 'animation') && (
+          activeCategory === 'environment') && (
           <EffectLibrarySidebar
             effects={filteredEffects}
             spec={spec}
@@ -163,6 +160,10 @@ export function StudioSidebar({
             onEffectIntensityChange={onEffectIntensityChange}
             onEffectAdvanced={onEffectAdvanced}
           />
+        )}
+
+        {activeCategory === 'animation' && (
+          <MotionPanel imageUrl={spec?.imageUrl ?? null} />
         )}
 
         {activeCategory === 'camera' && (

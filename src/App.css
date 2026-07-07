@@ -1991,6 +1991,112 @@
   box-shadow: none;
 }
 
+.motion-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+}
+
+.motion-panel h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.motion-panel p {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.motion-generate-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 12px;
+  color: var(--button-text);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--shadow-blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.motion-generate-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.motion-status {
+  padding: 10px;
+  background: rgba(50, 200, 255, 0.08);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+}
+
+.motion-layer-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.motion-layer-list h3 {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.motion-layer-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  background: rgba(4, 15, 28, 0.18);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+}
+
+.motion-layer-card strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.motion-layer-card span,
+.motion-layer-card dt {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.motion-layer-card dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+.motion-layer-card dd {
+  margin: 2px 0 0;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .inspector-field input[type='range'] {
   appearance: none;
   width: 100%;
