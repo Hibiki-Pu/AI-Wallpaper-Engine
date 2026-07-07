@@ -1,5 +1,6 @@
 export type AnimationProviderName =
   | 'mock'
+  | 'liveportrait'
   | 'live_portrait'
   | 'depth_anything'
   | 'sam'
@@ -36,6 +37,18 @@ export interface AnimationResult {
   status: 'idle' | 'processing' | 'completed' | 'failed'
   outputType: 'motion_spec' | 'preview_asset' | 'none'
   previewUrl?: string
+  motionLayer?: import('./MotionLayer').MotionLayer
   motionSpec?: MotionSpec
   errorMessage?: string
+}
+
+export interface AnimationProviderManifest {
+  id: AnimationProviderName
+  name: string
+  kind: string
+  status: 'available' | 'experimental' | 'disabled'
+  runtime: 'localCli' | 'localService' | 'docker' | 'disabled'
+  requiresExternalRuntime: boolean
+  supportedInputs: string[]
+  supportedOutputs: string[]
 }

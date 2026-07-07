@@ -191,6 +191,10 @@ const TRANSLATIONS = {
     portrait: 'Portrait',
     landscape: 'Landscape',
     object: 'Object',
+    mockProviderAvailable: 'Mock Provider: Available',
+    livePortraitExperimental: 'LivePortrait: Experimental',
+    runtimeNotConfigured: 'Runtime not configured',
+    comingSoon: 'Coming soon',
   },
   zh: {
     language: 'English',
@@ -374,6 +378,10 @@ const TRANSLATIONS = {
     portrait: '人物',
     landscape: '风景',
     object: '物体',
+    mockProviderAvailable: 'Mock Provider：可用',
+    livePortraitExperimental: 'LivePortrait：实验性',
+    runtimeNotConfigured: 'Runtime not configured',
+    comingSoon: '即将支持',
   },
 } as const
 

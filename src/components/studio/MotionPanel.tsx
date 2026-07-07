@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { getAnimationProvider } from '../../providers/animation/providerFactory'
+import { checkLivePortraitRuntime } from '../../providers/animation/livePortrait/livePortraitRuntimeBridge'
 import type {
   AnimationProviderName,
   AnimationTargetType,
@@ -29,8 +30,8 @@ const PROVIDER_OPTIONS: Array<{
   label: string
   disabled?: boolean
 }> = [
-  { value: 'mock', label: 'mock' },
-  { value: 'live_portrait', label: 'live_portrait (coming soon)', disabled: true },
+  { value: 'mock', label: 'Mock Provider: Available' },
+  { value: 'liveportrait', label: 'LivePortrait: Experimental' },
   { value: 'depth_anything', label: 'depth_anything (coming soon)', disabled: true },
   { value: 'sam', label: 'sam (coming soon)', disabled: true },
 ]
@@ -61,6 +62,15 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     () => getAnimationProvider(providerName),
     [providerName],
   )
+  const livePortraitHealth = useMemo(() => checkLivePortraitRuntime(), [])
+  const providerStatus =
+    providerName === 'mock'
+      ? t('mockProviderAvailable')
+      : providerName === 'liveportrait' || providerName === 'live_portrait'
+        ? livePortraitHealth.available
+          ? t('livePortraitExperimental')
+          : t('runtimeNotConfigured')
+        : t('comingSoon')
 
   const handleGenerate = async () => {
     if (!imageUrl || isGenerating) {
@@ -86,21 +96,22 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
         return
       }
 
-      const nextLayer: MotionLayer = {
-        id: result.motionSpec.id,
-        name: createMotionLayerName(motionType, layers.length),
-        targetType,
-        motionType,
-        provider: result.provider,
-        visible: true,
-        strength,
-        loop,
-        duration,
-        motionSpec: result.motionSpec,
-      }
+      const nextLayer: MotionLayer =
+        result.motionLayer ?? {
+          id: result.motionSpec.id,
+          name: createMotionLayerName(motionType, layers.length),
+          targetType,
+          motionType,
+          provider: result.provider,
+          visible: true,
+          strength,
+          loop,
+          duration,
+          motionSpec: result.motionSpec,
+        }
 
       setLayers((currentLayers) => [nextLayer, ...currentLayers])
-      setStatus(t('motionLayerCreated'))
+      setStatus(result.errorMessage ?? t('motionLayerCreated'))
     } finally {
       setIsGenerating(false)
     }
@@ -128,6 +139,7 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
             </option>
           ))}
         </select>
+        <small className="motion-provider-status">{providerStatus}</small>
       </label>
 
       <label className="inspector-field">
@@ -240,3 +252,4 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     </section>
   )
 }
+

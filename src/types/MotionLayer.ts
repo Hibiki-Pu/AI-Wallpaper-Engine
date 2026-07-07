@@ -14,5 +14,6 @@ export interface MotionLayer {
   strength: number
   loop: boolean
   duration: number
+  params?: Record<string, unknown>
   motionSpec?: MotionSpec
 }

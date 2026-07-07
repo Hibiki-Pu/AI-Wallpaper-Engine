@@ -9,7 +9,19 @@ const createMotionId = () =>
   `motion-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
 export const mockAnimationProvider: AnimationProvider = {
+  id: 'mock',
   name: 'mock',
+  displayName: 'Mock Provider',
+  manifest: {
+    id: 'mock',
+    name: 'Mock Provider',
+    kind: 'mock-motion',
+    status: 'available',
+    runtime: 'disabled',
+    requiresExternalRuntime: false,
+    supportedInputs: ['sourceImage'],
+    supportedOutputs: ['motionLayer', 'metadata'],
+  },
   async generate(request: AnimationRequest): Promise<AnimationResult> {
     const motionSpec: MotionSpec = {
       id: createMotionId(),

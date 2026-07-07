@@ -43,6 +43,8 @@ AI Wallpaper Engine 的目标很简单：
 | Style Case Library | Done |
 | Style Pack System | Foundation |
 | Smart Match | Mock |
+| Animation Provider Framework | Done |
+| LivePortrait Integration Adapter | Experimental |
 | Wallpaper Package Export | Done |
 | Dark / Light Theme | Done |
 | Responsive Studio UI | Done |
@@ -97,12 +99,34 @@ Core flow:
 - Image Upload -> WallpaperSpec -> Layer System -> Renderer
 - Renderer -> Preview / Export Package
 - Style Packs -> Style Case Library -> Smart Match -> WallpaperSpec
+- Animation Providers -> Motion Layers -> future model-driven animation
 
 核心流程：
 
 - 图片上传 -> WallpaperSpec -> 图层系统 -> 渲染器
 - 渲染器 -> 预览 / 导出网页壁纸包
 - 风格包 -> 风格案例库 -> 智能匹配 -> WallpaperSpec
+- 动画提供方 -> 运动图层 -> 未来模型驱动动画
+
+### Provider-first Architecture
+
+V0.6 Sprint 18 adds the LivePortrait Integration Adapter.
+
+LivePortrait is treated as an experimental `portrait-motion` provider, not as frontend code bundled into the editor.
+
+Provider-first Architecture means external animation systems connect through stable adapters:
+
+- Mock Provider for editor workflow
+- LivePortrait Adapter for future portrait motion
+- Future local CLI / local service / Docker runtimes
+
+This keeps Python, PyTorch, GPU dependencies and model weights outside the React app.
+
+V0.6 Sprint 18 新增 LivePortrait Integration Adapter。
+
+LivePortrait 被视为实验性的 `portrait-motion` Provider，而不是直接写进前端的模型代码。
+
+Provider-first Architecture 让外部动画能力通过稳定适配器接入，避免把 Python、PyTorch、GPU 依赖和模型权重放进 React 应用。
 
 ---
 
@@ -169,6 +193,8 @@ Safety model:
 ai-wallpaper-engine/
 |-- docs/
 |   |-- export-package.md
+|   |-- integrations/
+|   |   `-- liveportrait.md
 |   |-- layer-system.md
 |   `-- wallpaper-spec.md
 |-- public/
@@ -186,6 +212,8 @@ ai-wallpaper-engine/
 |   |-- renderer/
 |   |   |-- effects/
 |   |   `-- WallpaperRenderer.tsx
+|   |-- providers/
+|   |   `-- animation/
 |   |-- services/
 |   |   |-- smartMatch/
 |   |   |-- stylePacks/
@@ -266,10 +294,19 @@ Future versions will support:
 - Official Style Packs
 - Community Style Packs
 - Marketplace
+- LivePortrait runtime bridge
+- Motion Layer preview rendering
 - AI Smart Match
 - OpenCLIP
 - Vector Search
 - Cloud Sync
+
+Next Roadmap:
+
+- Sprint 19: connect one real LivePortrait runtime path
+- Runtime health checks and configuration
+- Preview asset pipeline for motion providers
+- MotionLayer rendering bridge
 
 这个项目正在从单一编辑器演进为一个动态壁纸生态。
 

@@ -1,17 +1,139 @@
 import type { AnimationProvider } from '../baseAnimationProvider'
+import type {
+  AnimationProviderManifest,
+  AnimationRequest,
+  AnimationResult,
+  MotionSpec,
+} from '../../../types/AnimationProvider'
+import {
+  DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
+  checkLivePortraitRuntime,
+  normalizeLivePortraitOutput,
+  validateLivePortraitInput,
+} from './livePortraitRuntimeBridge'
+import type {
+  LivePortraitInput,
+  LivePortraitMotionPreset,
+  LivePortraitRuntimeConfig,
+} from './livePortraitTypes'
 
-export const livePortraitProvider: AnimationProvider = {
-  name: 'live_portrait',
-  async generate() {
-    // TODO: Future integration point for a backend LivePortrait service.
-    // The frontend should send a source image and an idle motion preset.
-    // The backend can return either an animated asset URL or a portable motion spec.
-    return {
-      provider: 'live_portrait',
-      status: 'failed',
-      outputType: 'none',
-      errorMessage:
-        'LivePortrait provider is reserved for a future backend integration.',
-    }
-  },
+export const livePortraitProviderManifest: AnimationProviderManifest = {
+  id: 'liveportrait',
+  name: 'LivePortrait',
+  kind: 'portrait-motion',
+  status: 'experimental',
+  runtime: 'disabled',
+  requiresExternalRuntime: true,
+  supportedInputs: ['sourceImage', 'drivingVideo', 'motionTemplate'],
+  supportedOutputs: ['motionLayer', 'previewVideo', 'metadata'],
 }
+
+const MOTION_TO_PRESET: Record<string, LivePortraitMotionPreset> = {
+  idle_breathing: 'subtle_breathing',
+  blink: 'blink',
+  gentle_head_motion: 'slight_head_turn',
+}
+
+const toLivePortraitInput = (
+  request: AnimationRequest | LivePortraitInput,
+): LivePortraitInput => {
+  if ('preset' in request) {
+    return request
+  }
+
+  return {
+    sourceAssetId: 'current-wallpaper',
+    sourceImageUrl: request.imageUrl,
+    preset: MOTION_TO_PRESET[request.motionType] ?? 'subtle_breathing',
+    strength: request.strength,
+    duration: request.duration,
+    loop: request.loop,
+  }
+}
+
+const toMotionSpec = (
+  input: LivePortraitInput,
+  metadata: Record<string, unknown>,
+): MotionSpec => ({
+  id: `liveportrait-motion-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`,
+  targetType: 'portrait',
+  motionType: input.preset,
+  strength: input.strength,
+  loop: input.loop,
+  duration: input.duration,
+  metadata,
+})
+
+export function createLivePortraitProvider(
+  runtimeConfig: LivePortraitRuntimeConfig = DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
+): AnimationProvider<AnimationRequest | LivePortraitInput> {
+  return {
+    id: 'liveportrait',
+    name: 'liveportrait',
+    displayName: 'LivePortrait',
+    manifest: {
+      ...livePortraitProviderManifest,
+      runtime: runtimeConfig.mode,
+    },
+    async generate(
+      request: AnimationRequest | LivePortraitInput,
+    ): Promise<AnimationResult> {
+      const input = toLivePortraitInput(request)
+      const validationErrors = validateLivePortraitInput(input)
+
+      if (validationErrors.length > 0) {
+        return {
+          provider: 'liveportrait',
+          status: 'failed',
+          outputType: 'none',
+          errorMessage: validationErrors.join('; '),
+        }
+      }
+
+      const health = checkLivePortraitRuntime(runtimeConfig)
+      const fallback = !health.available
+      const metadata = {
+        providerId: 'liveportrait',
+        preset: input.preset,
+        strength: input.strength,
+        duration: input.duration,
+        loop: input.loop,
+        sourceAssetId: input.sourceAssetId,
+        drivingVideoPath: input.drivingVideoPath,
+        drivingVideoUrl: input.drivingVideoUrl,
+        motionTemplateId: input.motionTemplateId,
+        runtimeMode: health.mode,
+        fallback,
+        runtimeMessage: health.message,
+      }
+      const normalized = normalizeLivePortraitOutput(
+        {
+          metadata,
+        },
+        input,
+      )
+      normalized.motionLayer.params = {
+        ...normalized.motionLayer.params,
+        ...metadata,
+      }
+      const motionSpec = toMotionSpec(input, {
+        ...metadata,
+        motionLayer: normalized.motionLayer,
+      })
+
+      return {
+        provider: 'liveportrait',
+        status: 'completed',
+        outputType: 'motion_spec',
+        previewUrl: normalized.previewVideoUrl,
+        motionLayer: normalized.motionLayer,
+        motionSpec,
+        errorMessage: fallback ? health.message : undefined,
+      }
+    },
+  }
+}
+
+export const livePortraitProvider = createLivePortraitProvider()
