@@ -17,6 +17,7 @@ export interface RuntimeConfig extends RuntimePathConfig {
   mode: RuntimeMode
   runtimeHostUrl?: string
   runtimeHostToken?: string
+  dryRun?: boolean
   enabled: boolean
   createdAt: string
   updatedAt: string

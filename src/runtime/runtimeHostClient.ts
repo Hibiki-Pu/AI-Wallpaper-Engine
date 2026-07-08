@@ -24,6 +24,8 @@ export interface RuntimeHostClientResult<T> {
 interface RuntimeHostJobRequest {
   providerId: string
   providerKind: RuntimeJobInput['providerKind']
+  mode?: RuntimeJobInput['mode']
+  runtimeConfig?: RuntimeJobInput['runtimeConfig']
   input: Record<string, unknown>
 }
 
@@ -72,6 +74,8 @@ export async function submitRuntimeHostJob(
   const request: RuntimeHostJobRequest = {
     providerId: jobInput.providerId,
     providerKind: jobInput.providerKind,
+    mode: jobInput.mode,
+    runtimeConfig: jobInput.runtimeConfig,
     input: jobInput.payload,
   }
 

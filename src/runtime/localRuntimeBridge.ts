@@ -152,6 +152,15 @@ export async function submitRuntimeJob(
         payload: hostJob.output?.payload,
         metadata: {
           ...hostJob.output?.metadata,
+          ...(hostJob.output?.payload?.commandPlan
+            ? { commandPlan: hostJob.output.payload.commandPlan }
+            : {}),
+          ...(hostJob.output?.payload?.outputPlan
+            ? { outputPlan: hostJob.output.payload.outputPlan }
+            : {}),
+          ...(hostJob.output?.payload?.dryRun !== undefined
+            ? { dryRun: hostJob.output.payload.dryRun }
+            : {}),
           runtimeHostJobId: hostJob.id,
           runtimeHostStatus: hostJob.status,
         },

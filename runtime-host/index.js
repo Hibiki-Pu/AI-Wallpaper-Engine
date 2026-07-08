@@ -96,6 +96,7 @@ const server = http.createServer(async (request, response) => {
         host: 'ai-wallpaper-runtime-host',
         version: VERSION,
         mode: 'mock',
+        supportedJobModes: ['mock', 'dryRun'],
         allowedProviders,
       },
       corsHeaders,

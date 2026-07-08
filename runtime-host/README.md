@@ -67,6 +67,43 @@ queued -> running -> completed
 
 The completed output is mock metadata only.
 
+## Dry Run Mode
+
+Sprint 22 adds `mode: "dryRun"` for LivePortrait.
+
+Dry run does not execute Python, FFmpeg or LivePortrait. It only generates:
+
+- `commandPlan`
+- `outputPlan`
+- `dryRun: true`
+
+Example request:
+
+```json
+{
+  "providerId": "liveportrait",
+  "providerKind": "portrait-motion",
+  "mode": "dryRun",
+  "runtimeConfig": {
+    "mode": "localCli",
+    "runtimePath": "D:/ai-runtimes/LivePortrait",
+    "pythonCommand": "python",
+    "entryFile": "inference.py",
+    "outputDir": "D:/ai-wallpaper-runtime-outputs/liveportrait"
+  },
+  "input": {
+    "sourceAssetId": "current-wallpaper",
+    "sourceImagePath": "D:/images/source.png",
+    "preset": "blink",
+    "strength": 0.5,
+    "duration": 5,
+    "loop": true
+  }
+}
+```
+
+The Runtime Host generates output filenames itself. The browser must not provide arbitrary executable commands or output file paths.
+
 ## Future LivePortrait CLI
 
 A future sprint can add an explicit opt-in CLI runner that maps validated job input to a known LivePortrait command. The frontend should still never send arbitrary executable command strings.

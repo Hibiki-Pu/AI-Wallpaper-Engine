@@ -12,6 +12,13 @@ const forbiddenCommandKeys = new Set([
   'shellCommand',
   'executeCommand',
 ])
+const dangerousShellTokens = ['&&', '||', ';', '|', '>', '<']
+const runtimeConfigStringKeys = [
+  'runtimePath',
+  'pythonCommand',
+  'entryFile',
+  'outputDir',
+]
 
 export function getCorsHeaders(origin) {
   const headers = {
@@ -74,6 +81,42 @@ const containsForbiddenCommandKey = (value) => {
   })
 }
 
+const containsDangerousShellToken = (value) =>
+  typeof value === 'string' &&
+  dangerousShellTokens.some((token) => value.includes(token))
+
+const validateRuntimeConfig = (runtimeConfig) => {
+  if (runtimeConfig === undefined) {
+    return { ok: true }
+  }
+
+  if (!runtimeConfig || typeof runtimeConfig !== 'object' || Array.isArray(runtimeConfig)) {
+    return { ok: false, message: 'runtimeConfig must be an object.' }
+  }
+
+  const invalidKey = runtimeConfigStringKeys.find((key) => {
+    const value = runtimeConfig[key]
+    return value !== undefined && typeof value !== 'string'
+  })
+
+  if (invalidKey) {
+    return { ok: false, message: `runtimeConfig.${invalidKey} must be a string.` }
+  }
+
+  const dangerousKey = runtimeConfigStringKeys.find((key) =>
+    containsDangerousShellToken(runtimeConfig[key]),
+  )
+
+  if (dangerousKey) {
+    return {
+      ok: false,
+      message: `runtimeConfig.${dangerousKey} contains unsafe shell characters.`,
+    }
+  }
+
+  return { ok: true }
+}
+
 export function validateRuntimeJobRequest(body) {
   if (!body || typeof body !== 'object') {
     return { ok: false, message: 'Request body must be an object.' }
@@ -81,6 +124,10 @@ export function validateRuntimeJobRequest(body) {
 
   if (!allowedProviders.includes(body.providerId)) {
     return { ok: false, message: 'Provider is not allowed.' }
+  }
+
+  if (body.mode !== undefined && body.mode !== 'mock' && body.mode !== 'dryRun') {
+    return { ok: false, message: 'Runtime job mode must be mock or dryRun.' }
   }
 
   if (containsForbiddenCommandKey(body)) {
@@ -91,5 +138,5 @@ export function validateRuntimeJobRequest(body) {
     }
   }
 
-  return { ok: true }
+  return validateRuntimeConfig(body.runtimeConfig)
 }

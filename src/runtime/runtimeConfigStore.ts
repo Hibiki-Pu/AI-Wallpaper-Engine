@@ -17,6 +17,7 @@ const createDefaultRuntimeConfig = (providerId: string): RuntimeConfig => {
     outputDir: '',
     runtimeHostUrl: 'http://127.0.0.1:8787',
     runtimeHostToken: '',
+    dryRun: true,
     createdAt: timestamp,
     updatedAt: timestamp,
   }

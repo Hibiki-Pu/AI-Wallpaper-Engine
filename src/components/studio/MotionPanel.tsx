@@ -62,6 +62,35 @@ const MOTION_TO_LIVEPORTRAIT_PRESET: Record<string, LivePortraitMotionPreset> = 
 const createMotionLayerName = (motionType: string, index: number) =>
   `${motionType.replaceAll('_', ' ')} ${index + 1}`
 
+const formatCommandPlanSummary = (commandPlan: unknown): string | null => {
+  if (!commandPlan || typeof commandPlan !== 'object') {
+    return null
+  }
+
+  const plan = commandPlan as {
+    command?: string
+    args?: string[]
+    cwd?: string
+  }
+
+  return [plan.command, ...(plan.args ?? [])]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .join(' ')
+}
+
+const formatOutputPlanSummary = (outputPlan: unknown): string | null => {
+  if (!outputPlan || typeof outputPlan !== 'object') {
+    return null
+  }
+
+  const plan = outputPlan as {
+    outputFilename?: string
+    runtimeOutputPath?: string
+  }
+
+  return plan.runtimeOutputPath ?? plan.outputFilename ?? null
+}
+
 interface MotionPanelProps {
   imageUrl: string | null
 }
@@ -356,6 +385,24 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
                   <dt>{t('duration')}</dt>
                   <dd>{layer.duration}s</dd>
                 </div>
+                {Boolean(layer.params?.dryRun) && (
+                  <div>
+                    <dt>{t('dryRun')}</dt>
+                    <dd>{t('planned')}</dd>
+                  </div>
+                )}
+                {formatCommandPlanSummary(layer.params?.commandPlan) && (
+                  <div className="motion-layer-plan">
+                    <dt>{t('commandPlan')}</dt>
+                    <dd>{formatCommandPlanSummary(layer.params?.commandPlan)}</dd>
+                  </div>
+                )}
+                {formatOutputPlanSummary(layer.params?.outputPlan) && (
+                  <div className="motion-layer-plan">
+                    <dt>{t('outputPlan')}</dt>
+                    <dd>{formatOutputPlanSummary(layer.params?.outputPlan)}</dd>
+                  </div>
+                )}
               </dl>
             </article>
           ))

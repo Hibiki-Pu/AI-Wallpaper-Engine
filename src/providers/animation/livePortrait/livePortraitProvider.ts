@@ -105,8 +105,12 @@ export function createLivePortraitProvider(
         buildLivePortraitRuntimeJobInput(input, runtimeConfig),
       )
       const staticHealth = checkLivePortraitRuntime(runtimeConfig)
+      const usesRuntimeHost =
+        Boolean(runtimeConfig.dryRun) &&
+        (runtimeConfig.mode === 'localCli' ||
+          runtimeConfig.mode === 'localService')
       const runtimeHealth =
-        runtimeConfig.mode === 'localService'
+        usesRuntimeHost
           ? await checkRuntimeHealth(
               'liveportrait',
               'localService',
@@ -115,12 +119,25 @@ export function createLivePortraitProvider(
             )
           : null
       const health =
-        runtimeConfig.mode === 'localService'
+        usesRuntimeHost
           ? {
               ...staticHealth,
-              available: Boolean(runtimeHealth?.available),
-              status: runtimeHealth?.available ? 'available' as const : 'unavailable' as const,
-              message: runtimeHealth?.message ?? staticHealth.message,
+              ...(() => {
+                const hasMissingRequirements = staticHealth.requirements.some(
+                  (requirement) => requirement.status === 'missing',
+                )
+
+                return {
+                  available: Boolean(runtimeHealth?.available) && !hasMissingRequirements,
+                  status:
+                    Boolean(runtimeHealth?.available) && !hasMissingRequirements
+                      ? 'available' as const
+                      : 'unavailable' as const,
+                  message: hasMissingRequirements
+                    ? staticHealth.message
+                    : runtimeHealth?.message ?? staticHealth.message,
+                }
+              })(),
             }
           : staticHealth
       const commandPreview = buildLivePortraitRuntimeJobInput(
@@ -138,6 +155,17 @@ export function createLivePortraitProvider(
             recoverable: true,
           }) ?? runtimeJob
       const fallback = !health.available || completedRuntimeJob.status !== 'completed'
+      const runtimeOutputMetadata = completedRuntimeJob.output?.metadata ?? {}
+      const runtimeOutputPayload = completedRuntimeJob.output?.payload ?? {}
+      const commandPlan =
+        runtimeOutputMetadata.commandPlan ?? runtimeOutputPayload.commandPlan
+      const outputPlan =
+        runtimeOutputMetadata.outputPlan ?? runtimeOutputPayload.outputPlan
+      const dryRun = Boolean(
+        runtimeConfig.dryRun ??
+          runtimeOutputMetadata.dryRun ??
+          runtimeOutputPayload.dryRun,
+      )
       const metadata = {
         providerId: 'liveportrait',
         preset: input.preset,
@@ -153,6 +181,9 @@ export function createLivePortraitProvider(
         runtimeMode: health.mode,
         runtimeHostUrl: runtimeConfig.runtimeHostUrl,
         hostAvailable: Boolean(runtimeHealth?.available),
+        dryRun,
+        commandPlan,
+        outputPlan,
         fallback,
         runtimeMessage: health.message,
         commandPreview,

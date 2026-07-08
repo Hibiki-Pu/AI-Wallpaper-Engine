@@ -17,7 +17,9 @@ export interface RuntimeJobInput {
   providerId: string
   providerKind: RuntimeProviderKind
   runtimeMode: 'localCli' | 'localService' | 'docker' | 'mock' | 'disabled'
+  mode?: 'mock' | 'dryRun'
   payload: Record<string, unknown>
+  runtimeConfig?: Record<string, unknown>
   metadata?: Record<string, unknown>
 }
 

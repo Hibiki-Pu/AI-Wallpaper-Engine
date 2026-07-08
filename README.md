@@ -48,6 +48,7 @@ AI Wallpaper Engine 的目标很简单：
 | Local Runtime Job Pipeline | Mock |
 | LivePortrait Local Runtime MVP | Config / Health Check |
 | Local Runtime Host MVP | Mock |
+| LivePortrait CLI Dry Run | Command / Output Plan |
 | Wallpaper Package Export | Done |
 | Dark / Light Theme | Done |
 | Responsive Studio UI | Done |
@@ -198,6 +199,20 @@ Security boundary:
 - `commandPreview` is metadata only
 
 V0.6 Sprint 21 新增本地 Runtime Host MVP。浏览器编辑器可以通过安全 HTTP API 提交结构化 RuntimeJob，但当前只做 mock execution，不执行真实模型。
+
+### LivePortrait CLI Dry Run
+
+V0.6 Sprint 22 adds a LivePortrait CLI dry-run contract.
+
+The Runtime Host can now accept `mode: "dryRun"` jobs and return:
+
+- `commandPlan`: the safe command that a future runtime would execute
+- `outputPlan`: the generated output filename and runtime output path
+- `dryRun: true`: proof that no external model was executed
+
+This still does not run LivePortrait, Python, PyTorch, FFmpeg or any model weights.
+
+V0.6 Sprint 22 新增 LivePortrait CLI Dry Run。Runtime Host 可以生成命令计划和输出计划，但不会执行真实模型。
 
 ---
 
@@ -372,6 +387,7 @@ Future versions will support:
 - Local Runtime Job Pipeline
 - LivePortrait Local Runtime MVP
 - Local Runtime Host MVP
+- LivePortrait CLI Dry Run
 - Motion Layer preview rendering
 - AI Smart Match
 - OpenCLIP
@@ -380,7 +396,7 @@ Future versions will support:
 
 Next Roadmap:
 
-- Sprint 22: LivePortrait CLI Dry Run / Real Output Import
+- Sprint 23: LivePortrait CLI Real Execution Behind Feature Flag
 - Connect one real LivePortrait runtime path behind explicit opt-in
 - Runtime logs and retry UX
 - Preview asset pipeline for motion providers

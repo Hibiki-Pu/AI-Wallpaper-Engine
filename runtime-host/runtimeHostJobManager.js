@@ -1,3 +1,10 @@
+import {
+  buildLivePortraitDryRunCommand,
+  createLivePortraitOutputPlan,
+  normalizeLivePortraitDryRunOutput,
+  validateLivePortraitJobInput,
+} from './providers/liveportrait/livePortraitHostAdapter.js'
+
 const jobs = new Map()
 
 const now = () => new Date().toISOString()
@@ -32,17 +39,41 @@ const updateStatus = (job, status) => {
 }
 
 export function createRuntimeHostJob(requestBody) {
+  const mode = requestBody.mode === 'dryRun' ? 'dryRun' : 'mock'
+  const validation =
+    mode === 'dryRun'
+      ? validateLivePortraitJobInput(
+          requestBody.input ?? {},
+          requestBody.runtimeConfig ?? {},
+        )
+      : { ok: true, errors: [] }
   const job = toRuntimeJob({
     providerId: requestBody.providerId,
     providerKind: requestBody.providerKind,
     runtimeMode: 'localService',
+    mode,
     payload: requestBody.input ?? {},
+    runtimeConfig: requestBody.runtimeConfig,
     metadata: {
       receivedBy: 'ai-wallpaper-runtime-host',
+      mode,
     },
   })
 
   jobs.set(job.id, job)
+
+  if (!validation.ok) {
+    updateStatus(job, 'failed')
+    job.error = {
+      code: 'LIVEPORTRAIT_DRY_RUN_VALIDATION_FAILED',
+      message: validation.errors.join(' '),
+      recoverable: true,
+      details: {
+        errors: validation.errors,
+      },
+    }
+    return job
+  }
 
   setTimeout(() => {
     const currentJob = jobs.get(job.id)
@@ -62,6 +93,25 @@ export function createRuntimeHostJob(requestBody) {
     }
 
     updateStatus(currentJob, 'completed')
+    if (mode === 'dryRun') {
+      const commandPlan = buildLivePortraitDryRunCommand(
+        requestBody.input ?? {},
+        requestBody.runtimeConfig ?? {},
+      )
+      const outputPlan = createLivePortraitOutputPlan(
+        requestBody.input ?? {},
+        requestBody.runtimeConfig ?? {},
+        currentJob.id,
+      )
+
+      currentJob.output = normalizeLivePortraitDryRunOutput(
+        currentJob,
+        commandPlan,
+        outputPlan,
+      )
+      return
+    }
+
     currentJob.output = {
       outputType: 'metadata',
       payload: {

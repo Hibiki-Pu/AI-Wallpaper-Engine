@@ -172,7 +172,44 @@ Sprint 21 validates the job boundary before real execution is introduced.
 
 ## Sprint 22 Runtime Plan
 
-Sprint 22 can add the first real runtime execution path:
+Sprint 22 adds CLI dry run and output import contracts:
+
+1. Runtime Host accepts `mode: "dryRun"` jobs.
+2. Runtime Host validates LivePortrait input and runtime config.
+3. Runtime Host generates a `commandPlan`.
+4. Runtime Host generates an `outputPlan`.
+5. LivePortrait provider stores `dryRun`, `commandPlan` and `outputPlan` in MotionLayer params.
+
+No external model, Python process, FFmpeg command or pretrained weight is executed in Sprint 22.
+
+## Dry Run Job Example
+
+```json
+{
+  "providerId": "liveportrait",
+  "providerKind": "portrait-motion",
+  "mode": "dryRun",
+  "runtimeConfig": {
+    "mode": "localCli",
+    "runtimePath": "D:/ai-runtimes/LivePortrait",
+    "pythonCommand": "python",
+    "entryFile": "inference.py",
+    "outputDir": "D:/ai-wallpaper-runtime-outputs/liveportrait"
+  },
+  "input": {
+    "sourceAssetId": "current-wallpaper",
+    "sourceImagePath": "D:/images/source.png",
+    "preset": "blink",
+    "strength": 0.5,
+    "duration": 5,
+    "loop": true
+  }
+}
+```
+
+## Sprint 23 Runtime Plan
+
+Sprint 23 can add the first real runtime execution path:
 
 1. Explicit opt-in runtime execution.
 2. Local CLI invocation through a safe desktop/backend bridge.

@@ -67,6 +67,19 @@ export function RuntimeSettingsPanel({
         <span>{t('enabled')}</span>
       </label>
 
+      <label className="inspector-toggle">
+        <input
+          type="checkbox"
+          checked={Boolean(config.dryRun)}
+          onChange={(event) => onChange({ dryRun: event.target.checked })}
+        />
+        <span>{t('dryRun')}</span>
+      </label>
+
+      {config.dryRun && (
+        <p className="runtime-service-note">{t('dryRunCopy')}</p>
+      )}
+
       <label className="inspector-field">
         <span>{t('runtimePath')}</span>
         <input
