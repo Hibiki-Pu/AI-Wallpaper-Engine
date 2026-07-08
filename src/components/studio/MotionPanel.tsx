@@ -11,6 +11,10 @@ import {
   resetRuntimeConfig,
   updateRuntimeConfig,
 } from '../../runtime/runtimeConfigStore'
+import {
+  checkRuntimeHostHealth,
+  type RuntimeHostHealth,
+} from '../../runtime/runtimeHostClient'
 import type {
   AnimationProviderName,
   AnimationTargetType,
@@ -76,6 +80,8 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
   const [loop, setLoop] = useState(true)
   const [layers, setLayers] = useState<MotionLayer[]>([])
   const [status, setStatus] = useState('')
+  const [hostHealth, setHostHealth] = useState<RuntimeHostHealth | null>(null)
+  const [hostHealthStatus, setHostHealthStatus] = useState('')
   const [jobStatus, setJobStatus] =
     useState<RuntimeJobStatus | 'fallback'>('idle')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -125,6 +131,28 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
 
   const handleRuntimeConfigReset = () => {
     setLivePortraitRuntimeConfig(resetRuntimeConfig('liveportrait'))
+    setHostHealth(null)
+    setHostHealthStatus('')
+  }
+
+  const handleCheckHost = async () => {
+    setHostHealthStatus(t('checkingHost'))
+    const result = await checkRuntimeHostHealth(
+      livePortraitRuntimeConfig.runtimeHostUrl,
+      livePortraitRuntimeConfig.runtimeHostToken,
+    )
+
+    if (result.ok && result.data) {
+      setHostHealth(result.data)
+      setHostHealthStatus(t('runtimeHostAvailable'))
+      return
+    }
+
+    setHostHealth({
+      ok: false,
+      error: result.error ?? t('runtimeHostUnavailable'),
+    })
+    setHostHealthStatus(result.error ?? t('runtimeHostUnavailable'))
   }
 
   const handleGenerate = async () => {
@@ -247,8 +275,11 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
           config={livePortraitRuntimeConfig}
           health={livePortraitHealth}
           commandPreview={commandPreview}
+          hostHealth={hostHealth}
+          hostHealthStatus={hostHealthStatus}
           onChange={handleRuntimeConfigChange}
           onReset={handleRuntimeConfigReset}
+          onCheckHost={handleCheckHost}
         />
       )}
 

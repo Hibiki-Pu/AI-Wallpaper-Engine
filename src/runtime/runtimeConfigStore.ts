@@ -15,6 +15,8 @@ const createDefaultRuntimeConfig = (providerId: string): RuntimeConfig => {
     pythonCommand: 'python',
     entryFile: 'inference.py',
     outputDir: '',
+    runtimeHostUrl: 'http://127.0.0.1:8787',
+    runtimeHostToken: '',
     createdAt: timestamp,
     updatedAt: timestamp,
   }

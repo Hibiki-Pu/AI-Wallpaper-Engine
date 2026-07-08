@@ -2142,6 +2142,17 @@
   overflow-wrap: anywhere;
 }
 
+.runtime-service-note {
+  margin: 0;
+  padding: 10px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .runtime-requirement-list p {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

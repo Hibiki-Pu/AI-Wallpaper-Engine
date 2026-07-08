@@ -1,21 +1,28 @@
 import type { RuntimeConfig, RuntimeHealthCheckResult } from '../../types/RuntimeConfig'
 import type { LivePortraitCommandPreview } from '../../providers/animation/livePortrait/livePortraitTypes'
+import type { RuntimeHostHealth } from '../../runtime/runtimeHostClient'
 import { useI18n } from '../../i18n'
 
 interface RuntimeSettingsPanelProps {
   config: RuntimeConfig
   health: RuntimeHealthCheckResult
   commandPreview: LivePortraitCommandPreview
+  hostHealth: RuntimeHostHealth | null
+  hostHealthStatus: string
   onChange: (patch: Partial<RuntimeConfig>) => void
   onReset: () => void
+  onCheckHost: () => void
 }
 
 export function RuntimeSettingsPanel({
   config,
   health,
   commandPreview,
+  hostHealth,
+  hostHealthStatus,
   onChange,
   onReset,
+  onCheckHost,
 }: RuntimeSettingsPanelProps) {
   const { t } = useI18n()
   const commandText = [
@@ -100,9 +107,49 @@ export function RuntimeSettingsPanel({
         />
       </label>
 
+      <label className="inspector-field">
+        <span>{t('runtimeHostUrl')}</span>
+        <input
+          type="text"
+          value={config.runtimeHostUrl ?? ''}
+          placeholder="http://127.0.0.1:8787"
+          onChange={(event) => onChange({ runtimeHostUrl: event.target.value })}
+        />
+      </label>
+
+      <label className="inspector-field">
+        <span>{t('runtimeHostToken')}</span>
+        <input
+          type="text"
+          value={config.runtimeHostToken ?? ''}
+          placeholder={t('optional')}
+          onChange={(event) => onChange({ runtimeHostToken: event.target.value })}
+        />
+      </label>
+
+      {config.mode === 'localService' && (
+        <p className="runtime-service-note">{t('localServiceRuntimeCopy')}</p>
+      )}
+
       <div className={`runtime-health-card status-${health.status}`}>
         <strong>{t('healthCheck')}</strong>
         <span>{health.message}</span>
+      </div>
+
+      <div className={`runtime-health-card status-${hostHealth?.ok ? 'available' : 'unavailable'}`}>
+        <strong>{t('runtimeHostHealth')}</strong>
+        <span>
+          {hostHealthStatus ||
+            (hostHealth?.ok
+              ? `${hostHealth.host} ${hostHealth.version}`
+              : t('hostNotChecked'))}
+        </span>
+        {hostHealth?.allowedProviders && (
+          <span>{hostHealth.allowedProviders.join(', ')}</span>
+        )}
+        <button type="button" className="runtime-reset-button" onClick={onCheckHost}>
+          {t('checkHost')}
+        </button>
       </div>
 
       <div className="runtime-requirement-list">

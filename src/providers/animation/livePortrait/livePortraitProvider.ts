@@ -16,7 +16,10 @@ import {
   createRuntimeJob,
   failRuntimeJob,
 } from '../../../runtime/runtimeJobManager'
-import { submitRuntimeJob } from '../../../runtime/localRuntimeBridge'
+import {
+  checkRuntimeHealth,
+  submitRuntimeJob,
+} from '../../../runtime/localRuntimeBridge'
 import type {
   LivePortraitInput,
   LivePortraitMotionPreset,
@@ -101,13 +104,34 @@ export function createLivePortraitProvider(
       const runtimeJob = createRuntimeJob(
         buildLivePortraitRuntimeJobInput(input, runtimeConfig),
       )
-      const health = checkLivePortraitRuntime(runtimeConfig)
+      const staticHealth = checkLivePortraitRuntime(runtimeConfig)
+      const runtimeHealth =
+        runtimeConfig.mode === 'localService'
+          ? await checkRuntimeHealth(
+              'liveportrait',
+              'localService',
+              runtimeConfig.runtimeHostUrl,
+              runtimeConfig.runtimeHostToken,
+            )
+          : null
+      const health =
+        runtimeConfig.mode === 'localService'
+          ? {
+              ...staticHealth,
+              available: Boolean(runtimeHealth?.available),
+              status: runtimeHealth?.available ? 'available' as const : 'unavailable' as const,
+              message: runtimeHealth?.message ?? staticHealth.message,
+            }
+          : staticHealth
       const commandPreview = buildLivePortraitRuntimeJobInput(
         input,
         runtimeConfig,
       ).payload.commandPreview
       const completedRuntimeJob = health.available
-        ? await submitRuntimeJob(runtimeJob)
+        ? await submitRuntimeJob(runtimeJob, {
+            hostUrl: runtimeConfig.runtimeHostUrl,
+            token: runtimeConfig.runtimeHostToken,
+          })
         : failRuntimeJob(runtimeJob.id, {
             code: 'RUNTIME_UNAVAILABLE',
             message: health.message,
@@ -127,6 +151,8 @@ export function createLivePortraitProvider(
         runtimeJobId: completedRuntimeJob.id,
         runtimeStatus: completedRuntimeJob.status,
         runtimeMode: health.mode,
+        runtimeHostUrl: runtimeConfig.runtimeHostUrl,
+        hostAvailable: Boolean(runtimeHealth?.available),
         fallback,
         runtimeMessage: health.message,
         commandPreview,

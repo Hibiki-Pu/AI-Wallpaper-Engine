@@ -214,6 +214,17 @@ const TRANSLATIONS = {
     missingRequirements: 'Requirements',
     commandPreview: 'Command Preview',
     resetRuntimeConfig: 'Reset Runtime Config',
+    runtimeHostUrl: 'Runtime Host URL',
+    runtimeHostToken: 'Runtime Host Token',
+    optional: 'Optional',
+    checkHost: 'Check Host',
+    runtimeHostHealth: 'Runtime Host Health',
+    hostNotChecked: 'Host not checked',
+    checkingHost: 'Checking Runtime Host...',
+    runtimeHostAvailable: 'Runtime Host available',
+    runtimeHostUnavailable: 'Runtime Host unavailable',
+    localServiceRuntimeCopy:
+      'localService mode submits structured jobs to the local Runtime Host. It does not execute browser-side commands.',
   },
   zh: {
     language: 'English',
@@ -420,6 +431,17 @@ const TRANSLATIONS = {
     missingRequirements: '检查项',
     commandPreview: '命令预览',
     resetRuntimeConfig: '重置运行时配置',
+    runtimeHostUrl: 'Runtime Host 地址',
+    runtimeHostToken: 'Runtime Host Token',
+    optional: '可选',
+    checkHost: '检查 Host',
+    runtimeHostHealth: 'Runtime Host 健康状态',
+    hostNotChecked: '尚未检查 Host',
+    checkingHost: '正在检查 Runtime Host...',
+    runtimeHostAvailable: 'Runtime Host 可用',
+    runtimeHostUnavailable: 'Runtime Host 不可用',
+    localServiceRuntimeCopy:
+      'localService 模式会把结构化任务提交到本地 Runtime Host，不会在浏览器中执行命令。',
   },
 } as const
 

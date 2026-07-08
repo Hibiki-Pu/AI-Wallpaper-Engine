@@ -147,7 +147,32 @@ The preview helps users understand what will be executed later, but no process i
 
 ## Sprint 21 Runtime Plan
 
-Sprint 21 can add the first real runtime execution path:
+Sprint 21 adds the Local Runtime Host MVP:
+
+1. Runtime Host runs at `http://127.0.0.1:8787`.
+2. Browser submits structured RuntimeJob requests.
+3. Runtime Host validates provider whitelist and security fields.
+4. Runtime Host returns mock queued/running/completed jobs.
+5. LivePortrait provider can use `localService` mode and fallback if host is unavailable.
+
+The Runtime Host does not execute LivePortrait in Sprint 21.
+
+## Runtime Host API
+
+- `GET /api/runtime/health`
+- `POST /api/runtime/jobs`
+- `GET /api/runtime/jobs/:jobId`
+- `POST /api/runtime/jobs/:jobId/cancel`
+
+## Why Mock Execution Only?
+
+Real LivePortrait execution requires Python, PyTorch, FFmpeg, CUDA and pretrained weights. These are intentionally kept outside the React app.
+
+Sprint 21 validates the job boundary before real execution is introduced.
+
+## Sprint 22 Runtime Plan
+
+Sprint 22 can add the first real runtime execution path:
 
 1. Explicit opt-in runtime execution.
 2. Local CLI invocation through a safe desktop/backend bridge.

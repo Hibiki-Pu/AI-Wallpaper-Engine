@@ -47,6 +47,7 @@ AI Wallpaper Engine 的目标很简单：
 | LivePortrait Integration Adapter | Experimental |
 | Local Runtime Job Pipeline | Mock |
 | LivePortrait Local Runtime MVP | Config / Health Check |
+| Local Runtime Host MVP | Mock |
 | Wallpaper Package Export | Done |
 | Dark / Light Theme | Done |
 | Responsive Studio UI | Done |
@@ -163,6 +164,41 @@ V0.6 Sprint 20 新增 LivePortrait 本地 Runtime 配置能力。
 
 项目仍然不会自动 clone、安装依赖、下载权重或执行 Python。
 
+### Local Runtime Host MVP
+
+V0.6 Sprint 21 adds a local Runtime Host.
+
+The browser editor can submit structured RuntimeJob requests through a safe HTTP API:
+
+```text
+http://127.0.0.1:8787
+```
+
+Start it with:
+
+```bash
+npm run runtime:host
+```
+
+Health check:
+
+```text
+http://127.0.0.1:8787/api/runtime/health
+```
+
+The host runs in mock mode only. It does not execute LivePortrait, Python, FFmpeg or arbitrary commands.
+
+Security boundary:
+
+- Binds to `127.0.0.1`
+- CORS limited to local Vite origins
+- Optional `RUNTIME_HOST_TOKEN`
+- Provider whitelist currently allows `liveportrait`
+- Rejects raw command execution fields
+- `commandPreview` is metadata only
+
+V0.6 Sprint 21 新增本地 Runtime Host MVP。浏览器编辑器可以通过安全 HTTP API 提交结构化 RuntimeJob，但当前只做 mock execution，不执行真实模型。
+
 ---
 
 ## Style Pack System
@@ -234,6 +270,7 @@ ai-wallpaper-engine/
 |   |-- runtime-pipeline.md
 |   `-- wallpaper-spec.md
 |-- public/
+|-- runtime-host/
 |-- src/
 |   |-- components/
 |   |   |-- studio/
@@ -334,6 +371,7 @@ Future versions will support:
 - LivePortrait runtime bridge
 - Local Runtime Job Pipeline
 - LivePortrait Local Runtime MVP
+- Local Runtime Host MVP
 - Motion Layer preview rendering
 - AI Smart Match
 - OpenCLIP
@@ -342,7 +380,7 @@ Future versions will support:
 
 Next Roadmap:
 
-- Sprint 21: real CLI invocation and preview video import
+- Sprint 22: LivePortrait CLI Dry Run / Real Output Import
 - Connect one real LivePortrait runtime path behind explicit opt-in
 - Runtime logs and retry UX
 - Preview asset pipeline for motion providers

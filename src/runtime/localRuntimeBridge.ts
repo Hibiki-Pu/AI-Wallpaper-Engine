@@ -5,6 +5,11 @@ import {
   updateRuntimeJobStatus,
 } from './runtimeJobManager'
 import type { RuntimeJob } from '../types/RuntimeJob'
+import {
+  checkRuntimeHostHealth,
+  getRuntimeHostJob,
+  submitRuntimeHostJob,
+} from './runtimeHostClient'
 
 export interface RuntimeHealthStatus {
   available: boolean
@@ -17,13 +22,36 @@ export interface RuntimeHealthStatus {
 const sleep = (ms: number) =>
   new Promise((resolve) => globalThis.setTimeout(resolve, ms))
 
-export function checkRuntimeHealth(providerId: string): RuntimeHealthStatus {
+export async function checkRuntimeHealth(
+  providerId: string,
+  mode: RuntimeHealthStatus['mode'] = providerId === 'mock' ? 'mock' : 'disabled',
+  hostUrl?: string,
+  token?: string,
+): Promise<RuntimeHealthStatus> {
   if (providerId === 'mock') {
     return {
       available: true,
       providerId,
       mode: 'mock',
       message: 'Mock local runtime available',
+    }
+  }
+
+  if (mode === 'localService') {
+    const hostHealth = await checkRuntimeHostHealth(hostUrl, token)
+
+    return {
+      available: Boolean(hostHealth.ok && hostHealth.data?.ok),
+      providerId,
+      mode: 'localService',
+      message:
+        hostHealth.data?.ok
+          ? 'Runtime Host available'
+          : hostHealth.error ?? 'Runtime Host unavailable',
+      missingRequirements:
+        hostHealth.ok && hostHealth.data?.allowedProviders?.includes(providerId)
+          ? undefined
+          : ['runtime host'],
     }
   }
 
@@ -36,7 +64,101 @@ export function checkRuntimeHealth(providerId: string): RuntimeHealthStatus {
   }
 }
 
-export async function submitRuntimeJob(job: RuntimeJob): Promise<RuntimeJob> {
+const pollHostJobUntilFinished = async (
+  hostJobId: string,
+  hostUrl?: string,
+  token?: string,
+) => {
+  let currentJob: RuntimeJob | null = null
+
+  for (let index = 0; index < 10; index += 1) {
+    await sleep(index === 0 ? 0 : 250)
+    const result = await getRuntimeHostJob(hostJobId, hostUrl, token)
+
+    if (!result.ok || !result.data?.job) {
+      return null
+    }
+
+    currentJob = result.data.job
+
+    if (
+      currentJob.status === 'completed' ||
+      currentJob.status === 'failed' ||
+      currentJob.status === 'cancelled'
+    ) {
+      return currentJob
+    }
+  }
+
+  return currentJob
+}
+
+export async function submitRuntimeJob(
+  job: RuntimeJob,
+  options?: {
+    hostUrl?: string
+    token?: string
+  },
+): Promise<RuntimeJob> {
+  if (job.input.runtimeMode === 'localService') {
+    const submittedJob = await submitRuntimeHostJob(
+      job.input,
+      options?.hostUrl,
+      options?.token,
+    )
+
+    if (!submittedJob.ok || !submittedJob.data?.job) {
+      return (
+        failRuntimeJob(job.id, {
+          code: 'RUNTIME_HOST_UNAVAILABLE',
+          message: submittedJob.error ?? 'Runtime Host unavailable',
+          recoverable: true,
+        }) ?? job
+      )
+    }
+
+    const hostJob = await pollHostJobUntilFinished(
+      submittedJob.data.job.id,
+      options?.hostUrl,
+      options?.token,
+    )
+
+    if (!hostJob) {
+      return (
+        failRuntimeJob(job.id, {
+          code: 'RUNTIME_HOST_TIMEOUT',
+          message: 'Runtime Host job did not complete in time.',
+          recoverable: true,
+        }) ?? job
+      )
+    }
+
+    if (hostJob.status !== 'completed') {
+      return (
+        failRuntimeJob(job.id, {
+          code: 'RUNTIME_HOST_JOB_FAILED',
+          message: `Runtime Host job ${hostJob.status}.`,
+          recoverable: true,
+          details: {
+            hostJob,
+          },
+        }) ?? job
+      )
+    }
+
+    return (
+      completeRuntimeJob(job.id, {
+        outputType: 'metadata',
+        payload: hostJob.output?.payload,
+        metadata: {
+          ...hostJob.output?.metadata,
+          runtimeHostJobId: hostJob.id,
+          runtimeHostStatus: hostJob.status,
+        },
+      }) ?? job
+    )
+  }
+
   updateRuntimeJobStatus(job.id, 'queued')
   await sleep(80)
 

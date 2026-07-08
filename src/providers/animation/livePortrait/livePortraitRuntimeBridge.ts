@@ -19,6 +19,8 @@ export const DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG: LivePortraitRuntimeConfig = {
   pythonCommand: 'python',
   entryFile: 'inference.py',
   outputDir: '',
+  runtimeHostUrl: 'http://127.0.0.1:8787',
+  runtimeHostToken: '',
   createdAt: new Date(0).toISOString(),
   updatedAt: new Date(0).toISOString(),
 }
@@ -164,6 +166,20 @@ export function checkLivePortraitRuntime(
     }
   }
 
+  if (config.mode === 'localService') {
+    return {
+      providerId: 'liveportrait',
+      available: false,
+      mode: config.mode,
+      status: 'unable_to_check',
+      message:
+        'Runtime Host health must be checked through the Runtime Host client.',
+      runtimePath: config.runtimePath,
+      checkedAt: now(),
+      requirements,
+    }
+  }
+
   if (
     config.mode !== 'mock' &&
     !hasBrowserFileSystemAccess() &&
@@ -303,6 +319,7 @@ export function buildLivePortraitRuntimeJobInput(
     payload: {
       ...input,
       commandPreview: buildLivePortraitCommand(input, config),
+      runtimeHostUrl: config.runtimeHostUrl,
     },
     metadata: {
       sourceAssetId: input.sourceAssetId,

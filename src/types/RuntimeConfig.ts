@@ -15,6 +15,8 @@ export interface RuntimePathConfig {
 export interface RuntimeConfig extends RuntimePathConfig {
   providerId: string
   mode: RuntimeMode
+  runtimeHostUrl?: string
+  runtimeHostToken?: string
   enabled: boolean
   createdAt: string
   updatedAt: string

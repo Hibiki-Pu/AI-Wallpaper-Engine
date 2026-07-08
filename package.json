@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite --host 127.0.0.1",
+    "runtime:host": "node runtime-host/index.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

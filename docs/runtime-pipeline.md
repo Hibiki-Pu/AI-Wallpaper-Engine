@@ -103,8 +103,50 @@ The browser still does not execute local files. Local paths may return `unable_t
 
 ## Sprint 21 Roadmap
 
-- Real CLI invocation behind explicit opt-in
-- Preview video import
+Sprint 21 adds a local Runtime Host MVP.
+
+The Runtime Host is a Node.js HTTP service that runs at:
+
+```text
+http://127.0.0.1:8787
+```
+
+It exposes:
+
+- `GET /api/runtime/health`
+- `POST /api/runtime/jobs`
+- `GET /api/runtime/jobs/:jobId`
+- `POST /api/runtime/jobs/:jobId/cancel`
+
+The host currently runs mock jobs only:
+
+```text
+queued -> running -> completed
+```
+
+It does not execute Python, FFmpeg or LivePortrait.
+
+## Runtime Host Security Boundary
+
+- The host binds to `127.0.0.1` by default.
+- CORS allows only local Vite origins.
+- `RUNTIME_HOST_TOKEN` can require `x-runtime-token`.
+- Provider whitelist currently allows `liveportrait`.
+- Request bodies cannot contain `rawCommand`, `shellCommand` or `executeCommand`.
+- `commandPreview` is metadata only.
+- The host exposes no arbitrary file-read API.
+
+## Why Browser Cannot Execute Python / FFmpeg
+
+The browser editor must not execute local programs directly. It has no safe file-system or process boundary for Python, FFmpeg, CUDA or model weights.
+
+The Runtime Host exists as a controlled local boundary where future explicit opt-in execution can happen.
+
+## Sprint 22 Roadmap
+
+- LivePortrait CLI dry run
+- Real output import
+- Preview video asset pipeline
 - Runtime logs
 - Retry and cancel UX
 - FFmpeg detection
