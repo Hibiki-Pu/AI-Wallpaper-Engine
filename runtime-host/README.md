@@ -16,6 +16,24 @@ Default URL:
 http://127.0.0.1:8787
 ```
 
+Use another port if needed:
+
+```bash
+RUNTIME_HOST_PORT=8788 npm run runtime:host
+```
+
+Windows CMD:
+
+```bat
+set RUNTIME_HOST_PORT=8788 && npm run runtime:host
+```
+
+PowerShell:
+
+```powershell
+$env:RUNTIME_HOST_PORT=8788; npm run runtime:host
+```
+
 Health check:
 
 ```text
@@ -104,6 +122,46 @@ Example request:
 
 The Runtime Host generates output filenames itself. The browser must not provide arbitrary executable commands or output file paths.
 
+## Real Run Mode
+
+Sprint 23 adds `mode: "realRun"` behind a feature flag.
+
+Real execution is disabled by default.
+
+Enable it explicitly:
+
+```bash
+RUNTIME_ENABLE_REAL_EXECUTION=true npm run runtime:host
+```
+
+Windows CMD:
+
+```bat
+set RUNTIME_ENABLE_REAL_EXECUTION=true && npm run runtime:host
+```
+
+PowerShell:
+
+```powershell
+$env:RUNTIME_ENABLE_REAL_EXECUTION="true"; npm run runtime:host
+```
+
+`realRun` executes only the Runtime Host generated commandPlan. It never executes frontend supplied raw commands.
+
+Execution uses:
+
+- `child_process.spawn`
+- `shell: false`
+- separated command and args
+- stdout/stderr capture with size limits
+- 10 minute timeout
+
+If the feature flag is disabled, `realRun` returns a failed job with:
+
+```text
+Real execution is disabled. Set RUNTIME_ENABLE_REAL_EXECUTION=true to enable it.
+```
+
 ## Future LivePortrait CLI
 
-A future sprint can add an explicit opt-in CLI runner that maps validated job input to a known LivePortrait command. The frontend should still never send arbitrary executable command strings.
+A future sprint can import real output videos into the editor Asset System and bind them to MotionLayer preview UI.

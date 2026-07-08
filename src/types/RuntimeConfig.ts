@@ -15,6 +15,7 @@ export interface RuntimePathConfig {
 export interface RuntimeConfig extends RuntimePathConfig {
   providerId: string
   mode: RuntimeMode
+  executionMode?: 'mock' | 'dryRun' | 'realRun'
   runtimeHostUrl?: string
   runtimeHostToken?: string
   dryRun?: boolean

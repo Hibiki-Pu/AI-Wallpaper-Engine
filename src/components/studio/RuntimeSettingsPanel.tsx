@@ -67,16 +67,36 @@ export function RuntimeSettingsPanel({
         <span>{t('enabled')}</span>
       </label>
 
-      <label className="inspector-toggle">
-        <input
-          type="checkbox"
-          checked={Boolean(config.dryRun)}
-          onChange={(event) => onChange({ dryRun: event.target.checked })}
-        />
-        <span>{t('dryRun')}</span>
+      <label className="inspector-field">
+        <span>{t('executionMode')}</span>
+        <select
+          value={config.executionMode ?? (config.dryRun ? 'dryRun' : 'mock')}
+          onChange={(event) =>
+            onChange({
+              executionMode: event.target
+                .value as NonNullable<RuntimeConfig['executionMode']>,
+              dryRun: event.target.value === 'dryRun',
+            })
+          }
+        >
+          <option value="mock">Mock</option>
+          <option value="dryRun">Dry Run</option>
+          <option
+            value="realRun"
+            disabled={hostHealth?.realExecutionEnabled === false}
+          >
+            Real Run
+          </option>
+        </select>
       </label>
 
-      {config.dryRun && (
+      {(config.executionMode ?? (config.dryRun ? 'dryRun' : 'mock')) ===
+        'realRun' && (
+        <p className="runtime-service-note">{t('realRunWarning')}</p>
+      )}
+
+      {(config.executionMode ?? (config.dryRun ? 'dryRun' : 'mock')) ===
+        'dryRun' && (
         <p className="runtime-service-note">{t('dryRunCopy')}</p>
       )}
 
@@ -160,6 +180,12 @@ export function RuntimeSettingsPanel({
         {hostHealth?.allowedProviders && (
           <span>{hostHealth.allowedProviders.join(', ')}</span>
         )}
+        {hostHealth && (
+          <span>
+            {t('realExecution')}: {hostHealth.realExecutionEnabled ? t('enabled') : t('off')}
+          </span>
+        )}
+        {hostHealth?.port && <span>port: {hostHealth.port}</span>}
         <button type="button" className="runtime-reset-button" onClick={onCheckHost}>
           {t('checkHost')}
         </button>

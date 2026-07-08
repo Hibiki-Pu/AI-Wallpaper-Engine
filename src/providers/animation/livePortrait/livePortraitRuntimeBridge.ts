@@ -21,6 +21,7 @@ export const DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG: LivePortraitRuntimeConfig = {
   outputDir: '',
   runtimeHostUrl: 'http://127.0.0.1:8787',
   runtimeHostToken: '',
+  executionMode: 'dryRun',
   dryRun: true,
   createdAt: new Date(0).toISOString(),
   updatedAt: new Date(0).toISOString(),
@@ -313,8 +314,10 @@ export function buildLivePortraitRuntimeJobInput(
   input: LivePortraitInput,
   config: LivePortraitRuntimeConfig = DEFAULT_LIVEPORTRAIT_RUNTIME_CONFIG,
 ): RuntimeJobInput {
+  const executionMode =
+    config.executionMode ?? (config.dryRun ? 'dryRun' : 'mock')
   const shouldUseRuntimeHost =
-    Boolean(config.dryRun) &&
+    (executionMode === 'dryRun' || executionMode === 'realRun') &&
     (config.mode === 'localCli' || config.mode === 'localService')
 
   return {
@@ -326,7 +329,7 @@ export function buildLivePortraitRuntimeJobInput(
         : shouldUseRuntimeHost
           ? 'localService'
           : config.mode,
-    mode: config.dryRun ? 'dryRun' : 'mock',
+    mode: executionMode,
     payload: {
       ...input,
       commandPreview: buildLivePortraitCommand(input, config),
@@ -342,7 +345,8 @@ export function buildLivePortraitRuntimeJobInput(
     metadata: {
       sourceAssetId: input.sourceAssetId,
       preset: input.preset,
-      dryRun: Boolean(config.dryRun),
+      dryRun: executionMode === 'dryRun',
+      realRun: executionMode === 'realRun',
     },
   }
 }

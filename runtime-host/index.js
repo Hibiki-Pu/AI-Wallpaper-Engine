@@ -16,6 +16,7 @@ import {
 const HOST = '127.0.0.1'
 const PORT = Number(process.env.RUNTIME_HOST_PORT ?? 8787)
 const VERSION = '0.1.0'
+const realExecutionEnabled = process.env.RUNTIME_ENABLE_REAL_EXECUTION === 'true'
 
 const sendJson = (response, statusCode, payload, corsHeaders = {}) => {
   response.writeHead(statusCode, {
@@ -96,8 +97,10 @@ const server = http.createServer(async (request, response) => {
         host: 'ai-wallpaper-runtime-host',
         version: VERSION,
         mode: 'mock',
-        supportedJobModes: ['mock', 'dryRun'],
+        supportedJobModes: ['mock', 'dryRun', 'realRun'],
         allowedProviders,
+        realExecutionEnabled,
+        port: PORT,
       },
       corsHeaders,
     )
@@ -114,7 +117,7 @@ const server = http.createServer(async (request, response) => {
         return
       }
 
-      const job = createRuntimeHostJob(body)
+      const job = createRuntimeHostJob(body, { realExecutionEnabled })
       sendJson(response, 202, { job }, corsHeaders)
     } catch (error) {
       sendJson(

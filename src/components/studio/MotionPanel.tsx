@@ -91,6 +91,27 @@ const formatOutputPlanSummary = (outputPlan: unknown): string | null => {
   return plan.runtimeOutputPath ?? plan.outputFilename ?? null
 }
 
+const formatExecutionResultSummary = (executionResult: unknown): string | null => {
+  if (!executionResult || typeof executionResult !== 'object') {
+    return null
+  }
+
+  const result = executionResult as {
+    exitCode?: number | null
+    durationMs?: number
+    timedOut?: boolean
+    stderr?: string
+  }
+  const parts = [
+    `exitCode: ${result.exitCode ?? 'n/a'}`,
+    result.durationMs !== undefined ? `${result.durationMs}ms` : null,
+    result.timedOut ? 'timeout' : null,
+    result.stderr ? `stderr: ${result.stderr.slice(0, 140)}` : null,
+  ].filter((part): part is string => Boolean(part))
+
+  return parts.join(' · ')
+}
+
 interface MotionPanelProps {
   imageUrl: string | null
 }
@@ -391,6 +412,12 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
                     <dd>{t('planned')}</dd>
                   </div>
                 )}
+                {Boolean(layer.params?.realRun) && (
+                  <div>
+                    <dt>{t('realRun')}</dt>
+                    <dd>{t('completed')}</dd>
+                  </div>
+                )}
                 {formatCommandPlanSummary(layer.params?.commandPlan) && (
                   <div className="motion-layer-plan">
                     <dt>{t('commandPlan')}</dt>
@@ -401,6 +428,16 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
                   <div className="motion-layer-plan">
                     <dt>{t('outputPlan')}</dt>
                     <dd>{formatOutputPlanSummary(layer.params?.outputPlan)}</dd>
+                  </div>
+                )}
+                {formatExecutionResultSummary(layer.params?.executionResult) && (
+                  <div className="motion-layer-plan">
+                    <dt>{t('executionResult')}</dt>
+                    <dd>
+                      {formatExecutionResultSummary(
+                        layer.params?.executionResult,
+                      )}
+                    </dd>
                   </div>
                 )}
               </dl>

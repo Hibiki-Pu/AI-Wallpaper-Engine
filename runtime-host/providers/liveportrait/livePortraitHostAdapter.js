@@ -122,3 +122,42 @@ export function normalizeLivePortraitDryRunOutput(job, commandPlan, outputPlan) 
     },
   }
 }
+
+export function normalizeLivePortraitRealRunOutput(
+  job,
+  commandPlan,
+  outputPlan,
+  executionResult,
+) {
+  return {
+    outputType: 'metadata',
+    payload: {
+      realRun: true,
+      dryRun: false,
+      previewVideoUrl: executionResult.ok ? outputPlan.previewVideoUrl : null,
+      previewImageUrl: null,
+      generatedAssetId: null,
+      commandPlan,
+      outputPlan,
+      executionResult,
+      metadata: {
+        mock: false,
+        realRun: true,
+        dryRun: false,
+        providerId: LIVEPORTRAIT_PROVIDER_ID,
+        message: executionResult.ok
+          ? 'LivePortrait command completed through Runtime Host.'
+          : 'LivePortrait command failed through Runtime Host.',
+      },
+    },
+    metadata: {
+      realRun: true,
+      dryRun: false,
+      providerId: LIVEPORTRAIT_PROVIDER_ID,
+      runtimeHostJobId: job.id,
+      commandPlan,
+      outputPlan,
+      executionResult,
+    },
+  }
+}

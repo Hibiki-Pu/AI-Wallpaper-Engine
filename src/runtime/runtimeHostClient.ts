@@ -11,7 +11,10 @@ export interface RuntimeHostHealth {
   host?: string
   version?: string
   mode?: string
+  supportedJobModes?: string[]
   allowedProviders?: string[]
+  realExecutionEnabled?: boolean
+  port?: number
   error?: string
 }
 

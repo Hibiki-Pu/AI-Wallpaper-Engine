@@ -2,8 +2,10 @@ import {
   buildLivePortraitDryRunCommand,
   createLivePortraitOutputPlan,
   normalizeLivePortraitDryRunOutput,
+  normalizeLivePortraitRealRunOutput,
   validateLivePortraitJobInput,
 } from './providers/liveportrait/livePortraitHostAdapter.js'
+import { executeCommandPlan } from './runtimeCommandExecutor.js'
 
 const jobs = new Map()
 
@@ -38,10 +40,15 @@ const updateStatus = (job, status) => {
   }
 }
 
-export function createRuntimeHostJob(requestBody) {
-  const mode = requestBody.mode === 'dryRun' ? 'dryRun' : 'mock'
+export function createRuntimeHostJob(requestBody, options = {}) {
+  const mode =
+    requestBody.mode === 'realRun'
+      ? 'realRun'
+      : requestBody.mode === 'dryRun'
+        ? 'dryRun'
+        : 'mock'
   const validation =
-    mode === 'dryRun'
+    mode === 'dryRun' || mode === 'realRun'
       ? validateLivePortraitJobInput(
           requestBody.input ?? {},
           requestBody.runtimeConfig ?? {},
@@ -62,10 +69,24 @@ export function createRuntimeHostJob(requestBody) {
 
   jobs.set(job.id, job)
 
+  if (mode === 'realRun' && !options.realExecutionEnabled) {
+    updateStatus(job, 'failed')
+    job.error = {
+      code: 'REAL_EXECUTION_DISABLED',
+      message:
+        'Real execution is disabled. Set RUNTIME_ENABLE_REAL_EXECUTION=true to enable it.',
+      recoverable: true,
+    }
+    return job
+  }
+
   if (!validation.ok) {
     updateStatus(job, 'failed')
     job.error = {
-      code: 'LIVEPORTRAIT_DRY_RUN_VALIDATION_FAILED',
+      code:
+        mode === 'realRun'
+          ? 'LIVEPORTRAIT_REAL_RUN_VALIDATION_FAILED'
+          : 'LIVEPORTRAIT_DRY_RUN_VALIDATION_FAILED',
       message: validation.errors.join(' '),
       recoverable: true,
       details: {
@@ -85,15 +106,14 @@ export function createRuntimeHostJob(requestBody) {
     updateStatus(currentJob, 'running')
   }, 300)
 
-  setTimeout(() => {
+  setTimeout(async () => {
     const currentJob = jobs.get(job.id)
 
     if (!currentJob || currentJob.status === 'cancelled') {
       return
     }
 
-    updateStatus(currentJob, 'completed')
-    if (mode === 'dryRun') {
+    if (mode === 'dryRun' || mode === 'realRun') {
       const commandPlan = buildLivePortraitDryRunCommand(
         requestBody.input ?? {},
         requestBody.runtimeConfig ?? {},
@@ -104,14 +124,48 @@ export function createRuntimeHostJob(requestBody) {
         currentJob.id,
       )
 
-      currentJob.output = normalizeLivePortraitDryRunOutput(
+      if (mode === 'dryRun') {
+        updateStatus(currentJob, 'completed')
+        currentJob.output = normalizeLivePortraitDryRunOutput(
+          currentJob,
+          commandPlan,
+          outputPlan,
+        )
+        return
+      }
+
+      const executionResult = await executeCommandPlan(commandPlan)
+      if (currentJob.status === 'cancelled') {
+        return
+      }
+
+      updateStatus(currentJob, executionResult.ok ? 'completed' : 'failed')
+      currentJob.output = normalizeLivePortraitRealRunOutput(
         currentJob,
         commandPlan,
         outputPlan,
+        executionResult,
       )
+
+      if (!executionResult.ok) {
+        currentJob.error = {
+          code: executionResult.timedOut
+            ? 'LIVEPORTRAIT_REAL_RUN_TIMEOUT'
+            : 'LIVEPORTRAIT_REAL_RUN_FAILED',
+          message:
+            executionResult.stderr ||
+            `LivePortrait command exited with code ${executionResult.exitCode}.`,
+          recoverable: true,
+          details: {
+            exitCode: executionResult.exitCode,
+            timedOut: executionResult.timedOut,
+          },
+        }
+      }
       return
     }
 
+    updateStatus(currentJob, 'completed')
     currentJob.output = {
       outputType: 'metadata',
       payload: {

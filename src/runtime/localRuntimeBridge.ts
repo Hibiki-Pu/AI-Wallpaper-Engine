@@ -68,11 +68,14 @@ const pollHostJobUntilFinished = async (
   hostJobId: string,
   hostUrl?: string,
   token?: string,
+  mode: RuntimeJob['input']['mode'] = 'mock',
 ) => {
   let currentJob: RuntimeJob | null = null
+  const attempts = mode === 'realRun' ? 650 : 10
+  const intervalMs = mode === 'realRun' ? 1000 : 250
 
-  for (let index = 0; index < 10; index += 1) {
-    await sleep(index === 0 ? 0 : 250)
+  for (let index = 0; index < attempts; index += 1) {
+    await sleep(index === 0 ? 0 : intervalMs)
     const result = await getRuntimeHostJob(hostJobId, hostUrl, token)
 
     if (!result.ok || !result.data?.job) {
@@ -121,6 +124,7 @@ export async function submitRuntimeJob(
       submittedJob.data.job.id,
       options?.hostUrl,
       options?.token,
+      job.input.mode,
     )
 
     if (!hostJob) {

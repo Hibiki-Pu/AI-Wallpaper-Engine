@@ -252,3 +252,77 @@ Current statuses:
 - `skipped`
 
 Sprint 23 can use this contract to import real preview videos after explicit runtime execution is enabled.
+
+## Sprint 23 Update: Real Run Feature Flag
+
+Sprint 23 adds `realRun` mode behind an explicit feature flag.
+
+Real execution is disabled by default.
+
+Enable it only for a prepared local runtime:
+
+```bash
+RUNTIME_ENABLE_REAL_EXECUTION=true npm run runtime:host
+```
+
+Windows CMD:
+
+```bat
+set RUNTIME_ENABLE_REAL_EXECUTION=true && npm run runtime:host
+```
+
+PowerShell:
+
+```powershell
+$env:RUNTIME_ENABLE_REAL_EXECUTION="true"; npm run runtime:host
+```
+
+Use a different port if needed:
+
+```bash
+RUNTIME_HOST_PORT=8788 npm run runtime:host
+```
+
+Health now returns:
+
+```json
+{
+  "ok": true,
+  "allowedProviders": ["liveportrait"],
+  "realExecutionEnabled": false,
+  "port": 8787
+}
+```
+
+Supported job modes:
+
+- `mock`
+- `dryRun`
+- `realRun`
+
+`realRun` rules:
+
+- It must pass provider whitelist checks.
+- It must pass runtime config validation.
+- It is rejected unless `RUNTIME_ENABLE_REAL_EXECUTION=true`.
+- It executes only the Runtime Host generated `commandPlan`.
+- It never executes frontend supplied `rawCommand`, `shellCommand`, `executeCommand` or `commandPreview`.
+- It uses `child_process.spawn` with `shell: false`.
+- stdout/stderr are captured with size limits.
+- timeout defaults to 10 minutes.
+
+Failure examples:
+
+- Python not found
+- `inference.py` not found
+- FFmpeg missing
+- pretrained weights missing
+- CUDA / torch error
+- timeout
+
+## Sprint 24 Roadmap
+
+- Import generated preview videos into the Asset System
+- Runtime output browser
+- MotionLayer preview asset binding
+- Runtime logs and retry UI

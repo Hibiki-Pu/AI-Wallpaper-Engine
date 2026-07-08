@@ -126,8 +126,13 @@ export function validateRuntimeJobRequest(body) {
     return { ok: false, message: 'Provider is not allowed.' }
   }
 
-  if (body.mode !== undefined && body.mode !== 'mock' && body.mode !== 'dryRun') {
-    return { ok: false, message: 'Runtime job mode must be mock or dryRun.' }
+  if (
+    body.mode !== undefined &&
+    body.mode !== 'mock' &&
+    body.mode !== 'dryRun' &&
+    body.mode !== 'realRun'
+  ) {
+    return { ok: false, message: 'Runtime job mode must be mock, dryRun or realRun.' }
   }
 
   if (containsForbiddenCommandKey(body)) {

@@ -206,6 +206,7 @@ const TRANSLATIONS = {
     runtimeSettings: 'Runtime Settings',
     livePortraitRuntime: 'LivePortrait Runtime',
     runtimeMode: 'Runtime Mode',
+    executionMode: 'Execution Mode',
     runtimePath: 'Runtime Path',
     pythonCommand: 'Python Command',
     entryFile: 'Entry File',
@@ -216,8 +217,13 @@ const TRANSLATIONS = {
     dryRun: 'Dry Run',
     dryRunCopy:
       'Dry Run generates a command plan and output plan only. It never executes LivePortrait, Python or FFmpeg.',
+    realRun: 'Real Run',
+    realRunWarning:
+      'Real Run will execute the local LivePortrait CLI through Runtime Host. It requires RUNTIME_ENABLE_REAL_EXECUTION=true.',
+    realExecution: 'Real Execution',
     commandPlan: 'Command Plan',
     outputPlan: 'Output Plan',
+    executionResult: 'Execution Result',
     planned: 'Planned',
     resetRuntimeConfig: 'Reset Runtime Config',
     runtimeHostUrl: 'Runtime Host URL',
@@ -429,6 +435,7 @@ const TRANSLATIONS = {
     runtimeSettings: '运行时设置',
     livePortraitRuntime: 'LivePortrait 运行时',
     runtimeMode: '运行模式',
+    executionMode: '执行模式',
     runtimePath: 'Runtime 路径',
     pythonCommand: 'Python 命令',
     entryFile: '入口文件',
@@ -439,8 +446,13 @@ const TRANSLATIONS = {
     dryRun: 'Dry Run 预演',
     dryRunCopy:
       'Dry Run 只生成命令计划和输出计划，不会执行 LivePortrait、Python 或 FFmpeg。',
+    realRun: 'Real Run 真实执行',
+    realRunWarning:
+      'Real Run 会通过 Runtime Host 执行本地 LivePortrait CLI，必须设置 RUNTIME_ENABLE_REAL_EXECUTION=true。',
+    realExecution: '真实执行',
     commandPlan: '命令计划',
     outputPlan: '输出计划',
+    executionResult: '执行结果',
     planned: '已规划',
     resetRuntimeConfig: '重置运行时配置',
     runtimeHostUrl: 'Runtime Host 地址',

@@ -20,6 +20,7 @@ import {
   checkRuntimeHealth,
   submitRuntimeJob,
 } from '../../../runtime/localRuntimeBridge'
+import { checkRuntimeHostHealth } from '../../../runtime/runtimeHostClient'
 import type {
   LivePortraitInput,
   LivePortraitMotionPreset,
@@ -105,8 +106,10 @@ export function createLivePortraitProvider(
         buildLivePortraitRuntimeJobInput(input, runtimeConfig),
       )
       const staticHealth = checkLivePortraitRuntime(runtimeConfig)
+      const executionMode =
+        runtimeConfig.executionMode ?? (runtimeConfig.dryRun ? 'dryRun' : 'mock')
       const usesRuntimeHost =
-        Boolean(runtimeConfig.dryRun) &&
+        (executionMode === 'dryRun' || executionMode === 'realRun') &&
         (runtimeConfig.mode === 'localCli' ||
           runtimeConfig.mode === 'localService')
       const runtimeHealth =
@@ -114,6 +117,13 @@ export function createLivePortraitProvider(
           ? await checkRuntimeHealth(
               'liveportrait',
               'localService',
+              runtimeConfig.runtimeHostUrl,
+              runtimeConfig.runtimeHostToken,
+            )
+          : null
+      const hostHealth =
+        usesRuntimeHost
+          ? await checkRuntimeHostHealth(
               runtimeConfig.runtimeHostUrl,
               runtimeConfig.runtimeHostToken,
             )
@@ -126,16 +136,27 @@ export function createLivePortraitProvider(
                 const hasMissingRequirements = staticHealth.requirements.some(
                   (requirement) => requirement.status === 'missing',
                 )
+                const realExecutionDisabled =
+                  executionMode === 'realRun' &&
+                  !hostHealth?.data?.realExecutionEnabled
 
                 return {
-                  available: Boolean(runtimeHealth?.available) && !hasMissingRequirements,
+                  available:
+                    Boolean(runtimeHealth?.available) &&
+                    !hasMissingRequirements &&
+                    !realExecutionDisabled,
                   status:
-                    Boolean(runtimeHealth?.available) && !hasMissingRequirements
+                    Boolean(runtimeHealth?.available) &&
+                    !hasMissingRequirements &&
+                    !realExecutionDisabled
                       ? 'available' as const
                       : 'unavailable' as const,
-                  message: hasMissingRequirements
-                    ? staticHealth.message
-                    : runtimeHealth?.message ?? staticHealth.message,
+                  message:
+                    hasMissingRequirements
+                      ? staticHealth.message
+                      : realExecutionDisabled
+                        ? 'Real execution is disabled. Set RUNTIME_ENABLE_REAL_EXECUTION=true to enable it.'
+                        : runtimeHealth?.message ?? staticHealth.message,
                 }
               })(),
             }
@@ -161,10 +182,18 @@ export function createLivePortraitProvider(
         runtimeOutputMetadata.commandPlan ?? runtimeOutputPayload.commandPlan
       const outputPlan =
         runtimeOutputMetadata.outputPlan ?? runtimeOutputPayload.outputPlan
+      const executionResult =
+        runtimeOutputMetadata.executionResult ??
+        runtimeOutputPayload.executionResult
       const dryRun = Boolean(
-        runtimeConfig.dryRun ??
-          runtimeOutputMetadata.dryRun ??
+        executionMode === 'dryRun' ||
+          runtimeOutputMetadata.dryRun ||
           runtimeOutputPayload.dryRun,
+      )
+      const realRun = Boolean(
+        executionMode === 'realRun' ||
+          runtimeOutputMetadata.realRun ||
+          runtimeOutputPayload.realRun,
       )
       const metadata = {
         providerId: 'liveportrait',
@@ -181,9 +210,12 @@ export function createLivePortraitProvider(
         runtimeMode: health.mode,
         runtimeHostUrl: runtimeConfig.runtimeHostUrl,
         hostAvailable: Boolean(runtimeHealth?.available),
+        realExecutionEnabled: Boolean(hostHealth?.data?.realExecutionEnabled),
         dryRun,
+        realRun,
         commandPlan,
         outputPlan,
+        executionResult,
         fallback,
         runtimeMessage: health.message,
         commandPreview,
