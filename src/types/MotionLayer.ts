@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   AnimationProviderName,
   AnimationTargetType,
   MotionSpec,
@@ -15,5 +15,8 @@ export interface MotionLayer {
   loop: boolean
   duration: number
   params?: Record<string, unknown>
+  preview?: {
+    videoUrl?: string
+  }
   motionSpec?: MotionSpec
 }

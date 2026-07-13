@@ -1,4 +1,4 @@
-import type { RuntimeConfig, RuntimeHealthCheckResult } from '../../types/RuntimeConfig'
+﻿import type { RuntimeConfig, RuntimeHealthCheckResult } from '../../types/RuntimeConfig'
 import type { LivePortraitCommandPreview } from '../../providers/animation/livePortrait/livePortraitTypes'
 import type { RuntimeHostHealth } from '../../runtime/runtimeHostClient'
 import { useI18n } from '../../i18n'
@@ -163,6 +163,8 @@ export function RuntimeSettingsPanel({
       {config.mode === 'localService' && (
         <p className="runtime-service-note">{t('localServiceRuntimeCopy')}</p>
       )}
+
+      <p className="runtime-service-note">{t('intermediateMp4Copy')}</p>
 
       <div className={`runtime-health-card status-${health.status}`}>
         <strong>{t('healthCheck')}</strong>

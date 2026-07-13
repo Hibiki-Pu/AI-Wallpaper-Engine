@@ -1,4 +1,4 @@
-import {
+﻿import {
   completeRuntimeJob,
   failRuntimeJob,
   getRuntimeJob,
@@ -164,6 +164,12 @@ export async function submitRuntimeJob(
             : {}),
           ...(hostJob.output?.payload?.dryRun !== undefined
             ? { dryRun: hostJob.output.payload.dryRun }
+            : {}),
+          ...(hostJob.output?.payload?.realRun !== undefined
+            ? { realRun: hostJob.output.payload.realRun }
+            : {}),
+          ...(hostJob.output?.payload?.executionResult
+            ? { executionResult: hostJob.output.payload.executionResult }
             : {}),
           runtimeHostJobId: hostJob.id,
           runtimeHostStatus: hostJob.status,

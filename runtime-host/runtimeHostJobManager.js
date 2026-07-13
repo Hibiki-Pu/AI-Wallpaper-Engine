@@ -1,4 +1,4 @@
-import {
+﻿import {
   buildLivePortraitDryRunCommand,
   createLivePortraitOutputPlan,
   normalizeLivePortraitDryRunOutput,
@@ -193,6 +193,58 @@ export function createRuntimeHostJob(requestBody, options = {}) {
 
 export function getRuntimeHostJob(jobId) {
   return jobs.get(jobId) ?? null
+}
+
+const getOutputPayload = (job) => job?.output?.payload ?? job?.output?.metadata ?? null
+
+export function getRuntimeJobOutput(jobId) {
+  const job = getRuntimeHostJob(jobId)
+
+  if (!job) {
+    return null
+  }
+
+  return {
+    job,
+    payload: getOutputPayload(job),
+  }
+}
+
+export function getRuntimeJobOutputStatus(jobId) {
+  const output = getRuntimeJobOutput(jobId)
+
+  if (!output) {
+    return { status: 'missing', job: null, outputPlan: null }
+  }
+
+  const outputPlan = output.payload?.outputPlan ?? null
+
+  if (!outputPlan) {
+    return {
+      status: output.job.status === 'failed' ? 'failed' : 'missing',
+      job: output.job,
+      outputPlan: null,
+    }
+  }
+
+  if (output.payload?.dryRun) {
+    return { status: 'planned', job: output.job, outputPlan }
+  }
+
+  if (output.job.status === 'failed') {
+    return { status: 'failed', job: output.job, outputPlan }
+  }
+
+  return { status: 'checking', job: output.job, outputPlan }
+}
+
+export function getRuntimeJobOutputVideoPath(jobId) {
+  const output = getRuntimeJobOutput(jobId)
+  const outputPlan = output?.payload?.outputPlan
+
+  return typeof outputPlan?.runtimeOutputPath === 'string'
+    ? outputPlan.runtimeOutputPath
+    : null
 }
 
 export function cancelRuntimeHostJob(jobId) {

@@ -1,4 +1,4 @@
-import type { AnimationProvider } from '../baseAnimationProvider'
+﻿import type { AnimationProvider } from '../baseAnimationProvider'
 import type {
   AnimationProviderManifest,
   AnimationRequest,
@@ -21,6 +21,7 @@ import {
   submitRuntimeJob,
 } from '../../../runtime/localRuntimeBridge'
 import { checkRuntimeHostHealth } from '../../../runtime/runtimeHostClient'
+import { importRuntimeOutputAsAsset } from '../../../runtime/runtimeOutputImporter'
 import type {
   LivePortraitInput,
   LivePortraitMotionPreset,
@@ -195,6 +196,12 @@ export function createLivePortraitProvider(
           runtimeOutputMetadata.realRun ||
           runtimeOutputPayload.realRun,
       )
+      const importResult = await importRuntimeOutputAsAsset(
+        completedRuntimeJob,
+        runtimeConfig.runtimeHostUrl,
+        runtimeConfig.runtimeHostToken,
+      )
+      const previewVideoUrl = importResult.asset?.url
       const metadata = {
         providerId: 'liveportrait',
         preset: input.preset,
@@ -216,8 +223,14 @@ export function createLivePortraitProvider(
         commandPlan,
         outputPlan,
         executionResult,
+        importStatus: importResult.status,
+        runtimeOutputAsset: importResult.asset,
+        runtimeOutputImportPlan: importResult.plan,
+        previewVideoUrl,
+        intermediateAsset: Boolean(importResult.asset),
+        finalExportFormat: false,
         fallback,
-        runtimeMessage: health.message,
+        runtimeMessage: importResult.error ?? health.message,
         commandPreview,
       }
       const normalized = normalizeLivePortraitOutput(
@@ -230,6 +243,11 @@ export function createLivePortraitProvider(
         ...normalized.motionLayer.params,
         ...metadata,
       }
+      if (previewVideoUrl) {
+        normalized.motionLayer.preview = {
+          videoUrl: previewVideoUrl,
+        }
+      }
       const motionSpec = toMotionSpec(input, {
         ...metadata,
         runtimeJob: completedRuntimeJob,
@@ -240,7 +258,7 @@ export function createLivePortraitProvider(
         provider: 'liveportrait',
         status: 'completed',
         outputType: 'motion_spec',
-        previewUrl: normalized.previewVideoUrl,
+        previewUrl: previewVideoUrl ?? normalized.previewVideoUrl,
         motionLayer: normalized.motionLayer,
         motionSpec,
         errorMessage: fallback ? health.message : undefined,

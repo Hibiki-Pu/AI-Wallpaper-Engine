@@ -463,3 +463,40 @@ This project focuses on simplicity, creativity and extensibility.
 ## License
 
 MIT
+
+### Runtime Output Video Import
+
+V0.6 Sprint 24 adds the Runtime Output Video Import contract.
+
+LivePortrait `realRun` output can now be exposed as a generated video asset when the Runtime Host confirms the output MP4 exists.
+
+Important boundaries:
+
+- MP4 is an intermediate LivePortrait animation asset.
+- MP4 is not the final wallpaper export format.
+- The final wallpaper export remains owned by the existing Wallpaper Export / Package flow.
+- The browser does not read local files directly.
+- Runtime output video is accessed only through Runtime Host endpoints.
+- `dryRun` creates an output plan only and does not create a real video asset.
+
+Runtime Host output endpoints:
+
+```text
+GET /api/runtime/outputs/:jobId
+GET /api/runtime/outputs/:jobId/video
+```
+
+Output lifecycle:
+
+```text
+planned -> available -> imported
+          -> missing
+          -> failed
+```
+
+Sprint 25 Roadmap:
+
+- First real LivePortrait end-to-end run
+- Runtime output video import into the broader Asset System
+- Preview video asset management
+- Safer runtime logs and retry UX

@@ -109,9 +109,46 @@ const formatExecutionResultSummary = (executionResult: unknown): string | null =
     result.stderr ? `stderr: ${result.stderr.slice(0, 140)}` : null,
   ].filter((part): part is string => Boolean(part))
 
-  return parts.join(' · ')
+  return parts.join(' ・ ')
 }
 
+const formatImportStatusLabel = (
+  status: unknown,
+  t: ReturnType<typeof useI18n>['t'],
+): string | null => {
+  if (typeof status !== 'string') {
+    return null
+  }
+
+  const knownStatuses = new Set([
+    'planned',
+    'checking',
+    'importing',
+    'imported',
+    'missing',
+    'failed',
+    'skipped',
+  ])
+
+  return knownStatuses.has(status)
+    ? t(status as Parameters<typeof t>[0])
+    : status
+}
+const getRuntimeOutputAssetSummary = (asset: unknown): string | null => {
+  if (!asset || typeof asset !== 'object') {
+    return null
+  }
+
+  const runtimeAsset = asset as {
+    name?: string
+    mimeType?: string
+    providerId?: string
+  }
+
+  return [runtimeAsset.name, runtimeAsset.mimeType, runtimeAsset.providerId]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .join(' ・ ')
+}
 interface MotionPanelProps {
   imageUrl: string | null
 }
@@ -394,7 +431,7 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
               <div>
                 <strong>{layer.name}</strong>
                 <span>
-                  {layer.targetType} · {layer.provider}
+                  {layer.targetType} ・ {layer.provider}
                 </span>
               </div>
               <dl>
@@ -440,7 +477,32 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
                     </dd>
                   </div>
                 )}
+                {typeof layer.params?.importStatus === 'string' && (
+                  <div>
+                    <dt>{t('importStatus')}</dt>
+                    <dd>{formatImportStatusLabel(layer.params.importStatus, t)}</dd>
+                  </div>
+                )}
+                {getRuntimeOutputAssetSummary(layer.params?.runtimeOutputAsset) && (
+                  <div className="motion-layer-plan">
+                    <dt>{t('runtimeOutputAsset')}</dt>
+                    <dd>
+                      {getRuntimeOutputAssetSummary(
+                        layer.params?.runtimeOutputAsset,
+                      )}
+                    </dd>
+                  </div>
+                )}
               </dl>
+              {layer.preview?.videoUrl && (
+                <video
+                  className="motion-layer-video-preview"
+                  src={layer.preview.videoUrl}
+                  controls
+                  muted
+                  loop
+                />
+              )}
             </article>
           ))
         )}

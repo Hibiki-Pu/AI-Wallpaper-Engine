@@ -1,4 +1,4 @@
-export const allowedProviders = ['liveportrait']
+﻿export const allowedProviders = ['liveportrait']
 
 const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
@@ -50,7 +50,15 @@ export function isAllowedApiPath(pathname) {
     return true
   }
 
-  return /^\/api\/runtime\/jobs\/[^/]+\/cancel$/.test(pathname)
+  if (/^\/api\/runtime\/jobs\/[^/]+\/cancel$/.test(pathname)) {
+    return true
+  }
+
+  if (/^\/api\/runtime\/outputs\/[^/]+$/.test(pathname)) {
+    return true
+  }
+
+  return /^\/api\/runtime\/outputs\/[^/]+\/video$/.test(pathname)
 }
 
 export function validateRuntimeToken(request) {

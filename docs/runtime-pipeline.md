@@ -326,3 +326,46 @@ Failure examples:
 - Runtime output browser
 - MotionLayer preview asset binding
 - Runtime logs and retry UI
+
+## Sprint 24 Runtime Output Video Import
+
+Sprint 24 adds a safe output import contract for Runtime Host generated video assets.
+
+The Runtime Host now exposes output metadata by `jobId`:
+
+```text
+GET /api/runtime/outputs/:jobId
+```
+
+It can also stream the generated MP4 when the file exists and is inside the planned `outputDir`:
+
+```text
+GET /api/runtime/outputs/:jobId/video
+```
+
+Security rules:
+
+- No arbitrary file-read API.
+- No `path` query parameter.
+- No `filename` query parameter.
+- The output path must come from `job.output.outputPlan.runtimeOutputPath`.
+- The output path must stay inside `outputPlan.outputDir`.
+- Only `.mp4` runtime output videos are served.
+- `dryRun` returns `planned` and does not expose a video file.
+
+Import status mapping:
+
+- `planned`: dry run created an output plan.
+- `missing`: real run completed but the expected MP4 does not exist.
+- `imported`: real run completed and the MP4 is available through Runtime Host.
+- `failed`: runtime job or output validation failed.
+- `skipped`: mock mode or non-runtime output.
+
+The MP4 remains an intermediate LivePortrait asset. It is not the final wallpaper export format.
+
+## Sprint 25 Roadmap
+
+- First real LivePortrait end-to-end run.
+- Runtime output video import into the full Asset System.
+- Runtime logs, retry and cancel UX.
+- Generated preview asset management.

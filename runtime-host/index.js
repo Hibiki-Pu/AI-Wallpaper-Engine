@@ -1,8 +1,13 @@
+﻿import fs from 'node:fs'
+import path from 'node:path'
 import http from 'node:http'
 import {
   cancelRuntimeHostJob,
   createRuntimeHostJob,
   getRuntimeHostJob,
+  getRuntimeJobOutput,
+  getRuntimeJobOutputStatus,
+  getRuntimeJobOutputVideoPath,
 } from './runtimeHostJobManager.js'
 import {
   allowedProviders,
@@ -55,6 +60,129 @@ const readJsonBody = (request) =>
 
 const getJobIdFromPath = (pathname) => pathname.split('/')[4]
 
+const getRuntimeOutputAssetUrl = (jobId) =>
+  `http://${HOST}:${PORT}/api/runtime/outputs/${jobId}/video`
+
+const isPathInsideDirectory = (filePath, directoryPath) => {
+  const resolvedFile = path.resolve(filePath)
+  const resolvedDirectory = path.resolve(directoryPath)
+  const relativePath = path.relative(resolvedDirectory, resolvedFile)
+
+  return Boolean(relativePath) && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
+}
+
+const getSafeVideoPath = (jobId) => {
+  const output = getRuntimeJobOutput(jobId)
+  const outputPlan = output?.payload?.outputPlan
+  const videoPath = getRuntimeJobOutputVideoPath(jobId)
+
+  if (!output || !outputPlan || !videoPath) {
+    return { ok: false, statusCode: 404, error: 'Runtime output video not found.' }
+  }
+
+  if (output.payload?.dryRun) {
+    return { ok: false, statusCode: 404, error: 'Runtime output is planned only.' }
+  }
+
+  if (path.extname(videoPath).toLowerCase() !== '.mp4') {
+    return { ok: false, statusCode: 403, error: 'Only mp4 runtime output videos are allowed.' }
+  }
+
+  if (!isPathInsideDirectory(videoPath, outputPlan.outputDir)) {
+    return { ok: false, statusCode: 403, error: 'Runtime output path is outside outputDir.' }
+  }
+
+  if (!fs.existsSync(videoPath)) {
+    return { ok: false, statusCode: 404, error: 'Runtime output video file is missing.' }
+  }
+
+  return { ok: true, videoPath, outputPlan, job: output.job }
+}
+
+const sendRuntimeOutputMetadata = (response, jobId, corsHeaders) => {
+  const statusInfo = getRuntimeJobOutputStatus(jobId)
+  const output = getRuntimeJobOutput(jobId)
+
+  if (!output) {
+    sendJson(response, 404, { ok: false, error: 'Job not found.' }, corsHeaders)
+    return
+  }
+
+  const outputPlan = statusInfo.outputPlan
+  let status = statusInfo.status
+  let asset = null
+
+  if (status === 'checking') {
+    const video = getSafeVideoPath(jobId)
+    status = video.ok ? 'available' : video.statusCode === 404 ? 'missing' : 'failed'
+  }
+
+  if (status === 'available' && outputPlan) {
+    asset = {
+      type: 'video',
+      mimeType: 'video/mp4',
+      filename: outputPlan.outputFilename,
+      url: getRuntimeOutputAssetUrl(jobId),
+    }
+  }
+
+  sendJson(
+    response,
+    200,
+    {
+      ok: true,
+      jobId,
+      providerId: output.job.input.providerId,
+      status,
+      outputPlan,
+      asset,
+    },
+    corsHeaders,
+  )
+}
+
+const streamRuntimeOutputVideo = (request, response, jobId, corsHeaders) => {
+  const video = getSafeVideoPath(jobId)
+
+  if (!video.ok) {
+    sendJson(response, video.statusCode, { ok: false, error: video.error }, corsHeaders)
+    return
+  }
+
+  const stat = fs.statSync(video.videoPath)
+  const range = request.headers.range
+  const headers = {
+    ...corsHeaders,
+    'Content-Type': 'video/mp4',
+    'Accept-Ranges': 'bytes',
+  }
+
+  if (range) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range)
+
+    if (match) {
+      const start = match[1] ? Number(match[1]) : 0
+      const end = match[2] ? Number(match[2]) : stat.size - 1
+      const safeEnd = Math.min(end, stat.size - 1)
+
+      if (start <= safeEnd && start < stat.size) {
+        response.writeHead(206, {
+          ...headers,
+          'Content-Length': safeEnd - start + 1,
+          'Content-Range': `bytes ${start}-${safeEnd}/${stat.size}`,
+        })
+        fs.createReadStream(video.videoPath, { start, end: safeEnd }).pipe(response)
+        return
+      }
+    }
+  }
+
+  response.writeHead(200, {
+    ...headers,
+    'Content-Length': stat.size,
+  })
+  fs.createReadStream(video.videoPath).pipe(response)
+}
 const server = http.createServer(async (request, response) => {
   const origin = request.headers.origin
   const corsHeaders = getCorsHeaders(origin)
@@ -130,8 +258,20 @@ const server = http.createServer(async (request, response) => {
     return
   }
 
-  if (request.method === 'GET' && /^\/api\/runtime\/jobs\/[^/]+$/.test(url.pathname)) {
-    const job = getRuntimeHostJob(getJobIdFromPath(url.pathname))
+  if (request.method === 'GET' && /^\/api\/runtime\/outputs\/[^/]+$/.test(url.pathname)) {
+    sendRuntimeOutputMetadata(response, getJobIdFromPath(url.pathname), corsHeaders)
+    return
+  }
+
+  if (
+    request.method === 'GET' &&
+    /^\/api\/runtime\/outputs\/[^/]+\/video$/.test(url.pathname)
+  ) {
+    streamRuntimeOutputVideo(request, response, getJobIdFromPath(url.pathname), corsHeaders)
+    return
+  }
+
+  if (request.method === 'GET' && /^\/api\/runtime\/jobs\/[^/]+$/.test(url.pathname)) {    const job = getRuntimeHostJob(getJobIdFromPath(url.pathname))
     sendJson(response, job ? 200 : 404, job ? { job } : { error: 'Job not found.' }, corsHeaders)
     return
   }

@@ -1,8 +1,9 @@
-import type {
+﻿import type {
   RuntimeJob,
   RuntimeJobInput,
   RuntimeJobOutput,
 } from '../types/RuntimeJob'
+import type { RuntimeOutputMetadataResponse } from '../types/RuntimeOutputImport'
 
 export const DEFAULT_RUNTIME_HOST_URL = 'http://127.0.0.1:8787'
 
@@ -142,6 +143,54 @@ export async function getRuntimeHostJob(
   }
 }
 
+export async function getRuntimeOutput(
+  jobId: string,
+  hostUrl = DEFAULT_RUNTIME_HOST_URL,
+  token?: string,
+): Promise<RuntimeHostClientResult<RuntimeOutputMetadataResponse>> {
+  try {
+    const response = await fetch(
+      `${normalizeHostUrl(hostUrl)}/api/runtime/outputs/${jobId}`,
+      {
+        headers: createHeaders(token),
+      },
+    )
+    const data = (await response.json()) as RuntimeOutputMetadataResponse
+
+    if (!response.ok || !data.ok) {
+      return {
+        ok: false,
+        error: data.error ?? `Runtime Host returned ${response.status}`,
+        data,
+      }
+    }
+
+    return { ok: true, data }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unable to read Runtime Host output.',
+    }
+  }
+}
+
+export function getRuntimeOutputVideoUrl(
+  jobId: string,
+  hostUrl = DEFAULT_RUNTIME_HOST_URL,
+): string {
+  return `${normalizeHostUrl(hostUrl)}/api/runtime/outputs/${jobId}/video`
+}
+
+export async function checkRuntimeOutputAvailability(
+  jobId: string,
+  hostUrl = DEFAULT_RUNTIME_HOST_URL,
+  token?: string,
+): Promise<RuntimeHostClientResult<RuntimeOutputMetadataResponse>> {
+  return getRuntimeOutput(jobId, hostUrl, token)
+}
 export async function cancelRuntimeHostJob(
   jobId: string,
   hostUrl = DEFAULT_RUNTIME_HOST_URL,

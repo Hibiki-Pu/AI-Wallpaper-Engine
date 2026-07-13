@@ -288,3 +288,32 @@ Sprint 24 can import generated preview videos into the Asset System and connect 
 - Pretrained weights can be large and license-sensitive.
 - Windows setup needs careful path and process handling.
 - Commercial usage requires license review.
+
+## Sprint 24 Output Import Contract
+
+Sprint 24 adds Runtime Output Video Import for LivePortrait generated MP4 files.
+
+This does not make MP4 the final wallpaper export format. The MP4 is only an intermediate animation asset produced by the LivePortrait provider.
+
+Behavior:
+
+- `dryRun`: creates `commandPlan` and `outputPlan`; import status is `planned`; no asset is created.
+- `realRun` failed: import status is `failed`; no asset is created.
+- `realRun` completed but file missing: import status is `missing`; no asset is created.
+- `realRun` completed and file exists: import status is `imported`; a runtime output video asset is created.
+
+The browser never reads arbitrary local files. It only receives a Runtime Host video URL:
+
+```text
+/api/runtime/outputs/:jobId/video
+```
+
+MotionLayer metadata can include:
+
+- `importStatus`
+- `runtimeOutputAsset`
+- `previewVideoUrl`
+- `intermediateAsset: true`
+- `finalExportFormat: false`
+
+Future Sprint 25 can validate a real local LivePortrait run end-to-end when a user has an external runtime installed and explicitly enables real execution.
