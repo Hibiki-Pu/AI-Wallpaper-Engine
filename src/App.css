@@ -2867,6 +2867,23 @@
   line-height: 1.5;
 }
 
+.image-generation-panel select {
+  width: 100%;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  color: var(--text-main);
+  background: rgba(4, 15, 28, 0.36);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.image-generation-panel select option {
+  color: #050b16;
+  background: #f8fbff;
+}
+
 .generation-mode-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2969,6 +2986,115 @@
 .image-generation-status.status-error {
   border-color: rgba(248, 113, 113, 0.42);
   color: #fca5a5;
+}
+
+.seedream-pending-card,
+.seedream-history-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(8, 25, 48, 0.42);
+  box-shadow: 0 14px 34px rgba(8, 145, 178, 0.12);
+}
+
+.seedream-pending-card img,
+.seedream-history-card img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.seedream-pending-card > div,
+.seedream-history-card > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.seedream-pending-card strong,
+.seedream-history-card strong {
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.seedream-pending-card span,
+.seedream-history-card span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.seedream-pending-card button,
+.seedream-history-card button,
+.seedream-history-header button {
+  width: 100%;
+  min-height: 34px;
+  box-sizing: border-box;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.seedream-pending-card button:first-of-type,
+.seedream-history-card button:first-of-type {
+  color: var(--button-text);
+  background: var(--accent);
+}
+
+.seedream-history-section {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.seedream-history-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.seedream-history-header > div {
+  min-width: 0;
+}
+
+.seedream-history-header strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.seedream-history-header button {
+  width: auto;
+  min-width: 72px;
+  padding: 0 12px;
+}
+
+.seedream-history-grid {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.seedream-history-card .danger-button {
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.32);
+  background: rgba(127, 29, 29, 0.12);
 }
 
 .wallpaper-asset-panel h2 {

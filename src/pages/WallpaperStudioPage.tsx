@@ -5,6 +5,8 @@ import { FloatingPanelButton } from '../components/studio/FloatingPanelButton'
 import { StudioInspector, type StudioInspectorSection } from '../components/studio/StudioInspector'
 import { StudioSidebar } from '../components/studio/StudioSidebar'
 import { StudioToolbar } from '../components/studio/StudioToolbar'
+import { DEFAULT_CANVAS_SIZE } from '../components/studio/Workspace'
+import type { CanvasSizePreset } from '../components/studio/CanvasSizeSelector'
 import type { EffectLibraryItem } from '../components/studio/EffectCard'
 import { EFFECT_LIBRARY as BASE_EFFECT_LIBRARY } from '../components/studio/effectLibrary'
 import {
@@ -24,6 +26,7 @@ import type {
 import type { StyleCase } from '../types/StyleCase'
 import type { SmartMatch } from '../types/SmartMatch'
 import { useI18n } from '../i18n'
+import type { SeedreamAspectRatio } from '../services/seedreamImageService'
 
 type ScenePreset = 'dreamy' | 'nature' | 'winter' | 'rainy' | 'fantasy' | 'night'
 
@@ -137,6 +140,22 @@ const EFFECT_PRESETS: Record<
 
 const createLayerId = (type: WallpaperLayer['type']) =>
   `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+const getGreatestCommonDivisor = (a: number, b: number): number =>
+  b === 0 ? a : getGreatestCommonDivisor(b, a % b)
+
+const canvasSizeToSeedreamAspectRatio = (
+  canvasSize: CanvasSizePreset,
+): SeedreamAspectRatio => {
+  const divisor = getGreatestCommonDivisor(canvasSize.width, canvasSize.height)
+  const ratio = `${canvasSize.width / divisor}:${canvasSize.height / divisor}`
+
+  return {
+    id: canvasSize.id,
+    label: canvasSize.label,
+    ratio,
+  }
+}
 
 const readImageDimensions = (
   imageUrl: string,
@@ -291,6 +310,8 @@ export function WallpaperStudioPage() {
   const [stylePacksVersion, setStylePacksVersion] = useState(0)
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false)
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false)
+  const [canvasSize, setCanvasSize] =
+    useState<CanvasSizePreset>(DEFAULT_CANVAS_SIZE)
   const [canvasResetSignal, setCanvasResetSignal] = useState(0)
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
   const [openSections, setOpenSections] = useState<
@@ -747,6 +768,8 @@ export function WallpaperStudioPage() {
 
         <StudioCanvas
           spec={wallpaperSpec}
+          canvasSize={canvasSize}
+          onCanvasSizeChange={setCanvasSize}
           onImageSelected={handleImageSelected}
           onImageReplace={handleImageReplace}
           resetSignal={canvasResetSignal}
@@ -765,6 +788,7 @@ export function WallpaperStudioPage() {
           selectedLayerId={selectedLayerId}
           activeImageFileName={activeImageFileName}
           activeImageDimensions={activeImageDimensions}
+          canvasAspectRatio={canvasSizeToSeedreamAspectRatio(canvasSize)}
           activeStyleCaseId={activeStyleCaseId}
           smartMatchScores={smartMatchScores}
           stylePacksVersion={stylePacksVersion}

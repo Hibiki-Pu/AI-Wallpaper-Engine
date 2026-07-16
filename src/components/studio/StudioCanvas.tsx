@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { DEFAULT_CANVAS_SIZE, Workspace } from './Workspace'
+import { Workspace } from './Workspace'
 import type { CanvasSizePreset } from './CanvasSizeSelector'
 import type { CanvasPan } from './CanvasViewport'
 import type { CanvasZoomMode } from './ZoomControls'
@@ -7,6 +7,8 @@ import type { WallpaperSpec } from '../../types/WallpaperSpec'
 
 interface StudioCanvasProps {
   spec: WallpaperSpec | null
+  canvasSize: CanvasSizePreset
+  onCanvasSizeChange: (size: CanvasSizePreset) => void
   onImageSelected: (file: File) => void
   onImageReplace: (file: File) => void
   resetSignal: number
@@ -14,12 +16,12 @@ interface StudioCanvasProps {
 
 export function StudioCanvas({
   spec,
+  canvasSize,
+  onCanvasSizeChange,
   onImageSelected,
   onImageReplace,
   resetSignal,
 }: StudioCanvasProps) {
-  const [canvasSize, setCanvasSize] =
-    useState<CanvasSizePreset>(DEFAULT_CANVAS_SIZE)
   const [zoom, setZoom] = useState(100)
   const [zoomMode, setZoomMode] = useState<CanvasZoomMode>('fit')
   const [pan, setPan] = useState<CanvasPan>({ x: 0, y: 0 })
@@ -38,7 +40,7 @@ export function StudioCanvas({
         zoom={zoom}
         zoomMode={zoomMode}
         pan={pan}
-        onCanvasSizeChange={setCanvasSize}
+        onCanvasSizeChange={onCanvasSizeChange}
         onZoomChange={setZoom}
         onZoomModeChange={setZoomMode}
         onPanChange={setPan}

@@ -84,6 +84,9 @@ const getGeneratedImageDataUrl = async (image) => {
   return `data:${mimeType};base64,${buffer.toString('base64')}`
 }
 
+const normalizeSeedreamAspectRatio = (value) =>
+  typeof value === 'string' && /^\d+:\d+$/.test(value) ? value : null
+
 const getJobIdFromPath = (pathname) => pathname.split('/')[4]
 
 const getRuntimeOutputAssetUrl = (jobId) =>
@@ -278,6 +281,7 @@ const server = http.createServer(async (request, response) => {
       const body = await readJsonBody(request, 16 * 1024 * 1024)
       if (!body.apiKey || typeof body.apiKey !== 'string') throw new Error('Seedream API Key is required.')
       if (!body.prompt || typeof body.prompt !== 'string' || !body.prompt.trim()) throw new Error('Image prompt is required.')
+      const aspectRatio = normalizeSeedreamAspectRatio(body.aspectRatio)
       const payload = await callSeedream('/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${body.apiKey}` },
@@ -288,6 +292,7 @@ const server = http.createServer(async (request, response) => {
           size: '2K',
           stream: false,
           watermark: true,
+          ...(aspectRatio ? { aspect_ratio: aspectRatio } : {}),
           ...(typeof body.referenceImage === 'string' && body.referenceImage
             ? { image: body.referenceImage }
             : {}),

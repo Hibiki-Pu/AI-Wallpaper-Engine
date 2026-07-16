@@ -8,6 +8,7 @@ import { MotionPanel } from './MotionPanel'
 import { ImageGenerationPanel } from './ImageGenerationPanel'
 import { useI18n } from '../../i18n'
 import type { EffectLibraryItem } from './EffectCard'
+import type { SeedreamAspectRatio } from '../../services/seedreamImageService'
 import type {
   WallpaperEffectLayerType,
   WallpaperSpec,
@@ -32,6 +33,7 @@ interface StudioSidebarProps {
   selectedLayerId: string | null
   activeImageFileName: string
   activeImageDimensions: { width: number; height: number } | null
+  canvasAspectRatio: SeedreamAspectRatio
   activeStyleCaseId: string
   smartMatchScores: Record<string, number>
   stylePacksVersion: number
@@ -91,6 +93,7 @@ export function StudioSidebar({
   selectedLayerId,
   activeImageFileName,
   activeImageDimensions,
+  canvasAspectRatio,
   activeStyleCaseId,
   smartMatchScores,
   stylePacksVersion,
@@ -155,7 +158,11 @@ export function StudioSidebar({
         )}
 
         {activeCategory === 'generate' && (
-          <ImageGenerationPanel onImageGenerated={onImageGenerated} />
+          <ImageGenerationPanel
+            hasCurrentWallpaper={Boolean(spec)}
+            canvasAspectRatio={canvasAspectRatio}
+            onImageGenerated={onImageGenerated}
+          />
         )}
 
         {(activeCategory === 'effects' ||

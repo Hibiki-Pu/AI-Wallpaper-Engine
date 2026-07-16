@@ -1,6 +1,25 @@
 export const SEEDREAM_MODEL = 'doubao-seedream-5-0-pro-260628'
 export const SEEDREAM_API_KEY_STORAGE_KEY = 'ai-wallpaper-engine.seedream-api-key'
+export const SEEDREAM_HISTORY_STORAGE_KEY = 'ai-wallpaper-engine.seedream-history'
 export const DEFAULT_RUNTIME_HOST_URL = 'http://127.0.0.1:8787'
+
+export interface SeedreamAspectRatio {
+  id: string
+  label: string
+  ratio: string
+}
+
+export interface SeedreamHistoryItem {
+  id: string
+  dataUrl: string
+  prompt: string
+  mode: 'text' | 'image'
+  aspectRatio: string
+  aspectRatioLabel: string
+  model: string
+  createdAt: string
+  referenceFileName?: string
+}
 
 interface SeedreamRequestOptions {
   apiKey: string
@@ -49,10 +68,11 @@ export const generateSeedreamImage = (
   prompt: string,
   options: SeedreamRequestOptions,
   referenceImage?: string,
+  aspectRatio?: string,
 ) =>
   request<{ ok: true; model: string; dataUrl: string }>(
     '/api/images/seedream/generate',
-    { prompt, ...(referenceImage ? { referenceImage } : {}) },
+    { prompt, ...(referenceImage ? { referenceImage } : {}), ...(aspectRatio ? { aspectRatio } : {}) },
     options,
   )
 
@@ -72,4 +92,19 @@ export const dataUrlToImageFile = async (dataUrl: string) => {
   const blob = await response.blob()
   const extension = blob.type.includes('jpeg') ? 'jpg' : blob.type.includes('webp') ? 'webp' : 'png'
   return new File([blob], `seedream-${Date.now()}.${extension}`, { type: blob.type })
+}
+
+export const readSeedreamHistory = (): SeedreamHistoryItem[] => {
+  try {
+    const rawHistory = localStorage.getItem(SEEDREAM_HISTORY_STORAGE_KEY)
+    if (!rawHistory) return []
+    const parsed = JSON.parse(rawHistory)
+    return Array.isArray(parsed) ? parsed.slice(0, 12) as SeedreamHistoryItem[] : []
+  } catch {
+    return []
+  }
+}
+
+export const writeSeedreamHistory = (history: SeedreamHistoryItem[]) => {
+  localStorage.setItem(SEEDREAM_HISTORY_STORAGE_KEY, JSON.stringify(history.slice(0, 12)))
 }
