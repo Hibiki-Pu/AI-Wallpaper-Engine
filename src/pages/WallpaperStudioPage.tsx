@@ -773,6 +773,7 @@ export function WallpaperStudioPage() {
           }
           onStyleCaseApply={handleStyleCaseApply}
           onImageReplace={handleImageReplace}
+          onImageGenerated={handleImageSelected}
           onImageDelete={handleImageDelete}
           onResetCanvasPosition={handleResetCanvasPosition}
           onCameraChange={handleCameraChange}

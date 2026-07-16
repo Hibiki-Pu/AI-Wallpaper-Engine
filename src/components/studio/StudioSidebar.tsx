@@ -5,6 +5,7 @@ import { StyleCaseLibrary } from './StyleCaseLibrary'
 import { StylePackManager } from './StylePackManager'
 import { WallpaperAssetPanel } from './WallpaperAssetPanel'
 import { MotionPanel } from './MotionPanel'
+import { ImageGenerationPanel } from './ImageGenerationPanel'
 import { useI18n } from '../../i18n'
 import type { EffectLibraryItem } from './EffectCard'
 import type {
@@ -16,6 +17,7 @@ import type { StyleCase } from '../../types/StyleCase'
 
 type StudioToolCategory =
   | 'assets'
+  | 'generate'
   | 'style'
   | 'effects'
   | 'environment'
@@ -36,6 +38,7 @@ interface StudioSidebarProps {
   onStylePacksChange: () => void
   onStyleCaseApply: (styleCase: StyleCase) => void
   onImageReplace: (file: File) => void
+  onImageGenerated: (file: File) => void
   onImageDelete: () => void
   onResetCanvasPosition: () => void
   onCameraChange: (patch: Partial<WallpaperSpec['camera']>) => void
@@ -60,6 +63,7 @@ const CATEGORY_ITEMS: Array<{
   icon: string
   labelKey:
     | 'assets'
+    | 'aiGenerate'
     | 'style'
     | 'effects'
     | 'environment'
@@ -69,6 +73,7 @@ const CATEGORY_ITEMS: Array<{
     | 'advanced'
 }> = [
   { id: 'assets', icon: '\uD83D\uDDBC\uFE0F', labelKey: 'assets' },
+  { id: 'generate', icon: '\u2726', labelKey: 'aiGenerate' },
   { id: 'style', icon: '\uD83C\uDFA8', labelKey: 'style' },
   { id: 'effects', icon: '\u2728', labelKey: 'effects' },
   { id: 'environment', icon: '\uD83C\uDF26\uFE0F', labelKey: 'environment' },
@@ -92,6 +97,7 @@ export function StudioSidebar({
   onStylePacksChange,
   onStyleCaseApply,
   onImageReplace,
+  onImageGenerated,
   onImageDelete,
   onResetCanvasPosition,
   onCameraChange,
@@ -146,6 +152,10 @@ export function StudioSidebar({
             onDeleteImage={onImageDelete}
             onResetPosition={onResetCanvasPosition}
           />
+        )}
+
+        {activeCategory === 'generate' && (
+          <ImageGenerationPanel onImageGenerated={onImageGenerated} />
         )}
 
         {(activeCategory === 'effects' ||

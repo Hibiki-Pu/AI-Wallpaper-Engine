@@ -317,3 +317,62 @@ MotionLayer metadata can include:
 - `finalExportFormat: false`
 
 Future Sprint 25 can validate a real local LivePortrait run end-to-end when a user has an external runtime installed and explicitly enables real execution.
+
+## Sprint 25 Readiness Audit
+
+Sprint 25 introduces a read-only environment audit before attempting any real LivePortrait run.
+
+The audit checks whether the current Windows machine appears ready for an external LivePortrait runtime:
+
+- Python command availability
+- FFmpeg availability
+- NVIDIA GPU and CUDA summary
+- PyTorch import and CUDA availability when Python is present
+- Runtime Host health
+- Suggested runtime directories
+
+It intentionally does not:
+
+- clone LivePortrait
+- install Python, PyTorch, CUDA or FFmpeg
+- download model weights
+- enable `realRun`
+- execute LivePortrait
+
+This keeps the main editor safe while giving users a clear readiness report for Sprint 26 guided setup.
+
+## Sprint 26A FFmpeg Guided Installation
+
+Sprint 26A verifies FFmpeg for the local Windows development machine only.
+
+Install method used during local setup:
+
+```bat
+winget install --id Gyan.FFmpeg -e
+```
+
+Verification commands:
+
+```bat
+where ffmpeg
+ffmpeg -version
+ffprobe -version
+```
+
+Media probe commands used for local LivePortrait test assets:
+
+```bat
+ffprobe -v error -show_entries format=duration,format_name -show_entries stream=codec_name,width,height,r_frame_rate -of default=noprint_wrappers=1 "D:\ai-wallpaper-runtime-inputs\liveportrait\driving\driving.mp4"
+
+ffprobe -v error -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 "D:\ai-wallpaper-runtime-inputs\liveportrait\source\source.jpg"
+```
+
+Local development asset notes:
+
+- Source image example: `D:\ai-wallpaper-runtime-inputs\liveportrait\source\source.jpg`
+- Driving video example: `D:\ai-wallpaper-runtime-inputs\liveportrait\driving\driving.mp4`
+- These are local development paths only.
+- Do not commit local absolute paths as default configuration for all users.
+- Do not move these files into project `src`.
+
+Sprint 26A only installs and verifies FFmpeg. It does not install LivePortrait, PyTorch, CUDA Toolkit or model weights, and it does not run `realRun`.

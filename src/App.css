@@ -260,8 +260,8 @@
   z-index: 50;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  width: min(380px, 90vw);
-  max-width: 90vw;
+  width: min(480px, 96vw);
+  max-width: 96vw;
   min-width: 0;
   overflow: hidden;
   color: var(--text-main);
@@ -2766,6 +2766,209 @@
   display: grid;
   gap: 14px;
   min-width: 0;
+}
+
+.image-generation-panel {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.image-generation-panel > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.image-generation-panel h2 {
+  margin: 2px 0 0;
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+.image-model-badge,
+.image-generation-status {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(4, 15, 28, 0.22);
+}
+
+.image-model-badge span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.image-model-badge strong {
+  color: var(--text-main);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.api-key-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.api-key-control input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.api-key-control button,
+.secondary-action,
+.image-generate-button {
+  min-height: 38px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.api-key-control button,
+.secondary-action {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.image-generate-button {
+  color: var(--button-text);
+  background: var(--accent);
+}
+
+.secondary-action:disabled,
+.image-generate-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.image-generation-panel textarea {
+  width: 100%;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 10px;
+  color: var(--text-main);
+  background: rgba(4, 15, 28, 0.36);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.generation-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  background: rgba(4, 15, 28, 0.3);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+}
+
+.generation-mode-switch button {
+  min-height: 36px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.generation-mode-switch button.active {
+  color: var(--button-text);
+  background: var(--accent);
+}
+
+.reference-image-control {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.reference-image-control > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.reference-image-upload,
+.reference-image-preview button {
+  min-height: 38px;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.reference-image-preview {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: rgba(4, 15, 28, 0.22);
+}
+
+.reference-image-preview img {
+  width: 100%;
+  max-height: 190px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.reference-image-preview strong {
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.reference-image-preview > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reference-image-preview .danger-button {
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.32);
+}
+
+.image-generation-status {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.image-generation-status.status-success {
+  border-color: rgba(74, 222, 128, 0.42);
+  color: #86efac;
+}
+
+.image-generation-status.status-error {
+  border-color: rgba(248, 113, 113, 0.42);
+  color: #fca5a5;
 }
 
 .wallpaper-asset-panel h2 {

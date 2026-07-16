@@ -1,4 +1,4 @@
-﻿export const allowedProviders = ['liveportrait']
+export const allowedProviders = ['liveportrait']
 
 const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
@@ -11,6 +11,8 @@ const forbiddenCommandKeys = new Set([
   'rawCommand',
   'shellCommand',
   'executeCommand',
+  'outputFilename',
+  'runtimeOutputPath',
 ])
 const dangerousShellTokens = ['&&', '||', ';', '|', '>', '<']
 const runtimeConfigStringKeys = [
@@ -38,6 +40,9 @@ export function isAllowedOrigin(origin) {
 }
 
 export function isAllowedApiPath(pathname) {
+  if (pathname === '/api/images/seedream/test' || pathname === '/api/images/seedream/generate') {
+    return true
+  }
   if (pathname === '/api/runtime/health') {
     return true
   }
@@ -93,6 +98,9 @@ const containsDangerousShellToken = (value) =>
   typeof value === 'string' &&
   dangerousShellTokens.some((token) => value.includes(token))
 
+const containsDirectoryTraversal = (value) =>
+  typeof value === 'string' && /(^|[\\/])\.\.([\\/]|$)/.test(value)
+
 const validateRuntimeConfig = (runtimeConfig) => {
   if (runtimeConfig === undefined) {
     return { ok: true }
@@ -122,6 +130,17 @@ const validateRuntimeConfig = (runtimeConfig) => {
     }
   }
 
+  const traversalKey = runtimeConfigStringKeys.find((key) =>
+    containsDirectoryTraversal(runtimeConfig[key]),
+  )
+
+  if (traversalKey) {
+    return {
+      ok: false,
+      message: `runtimeConfig.${traversalKey} contains directory traversal.`,
+    }
+  }
+
   return { ok: true }
 }
 
@@ -147,7 +166,7 @@ export function validateRuntimeJobRequest(body) {
     return {
       ok: false,
       message:
-        'Raw command execution fields are not allowed. commandPreview is metadata only.',
+        'Raw command execution fields and frontend-defined output paths are not allowed.',
     }
   }
 

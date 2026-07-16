@@ -195,3 +195,24 @@ Security boundaries:
 - Range requests are supported for basic video seeking.
 
 The MP4 is an intermediate LivePortrait animation asset, not the final AI Wallpaper Engine export format.
+
+## Runtime Tests
+
+Sprint 25 adds a small Node.js test harness for Runtime Host safety.
+
+Run:
+
+```bash
+npm run test:runtime
+```
+
+Covered areas:
+
+- Provider whitelist and raw command rejection
+- Dangerous shell character rejection
+- Directory traversal rejection
+- Host-generated output filenames
+- Dry run output status
+- Command executor timeout and output truncation
+
+The tests do not run LivePortrait, Python, PyTorch, CUDA or FFmpeg.

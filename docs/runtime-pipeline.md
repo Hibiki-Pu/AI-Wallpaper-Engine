@@ -369,3 +369,35 @@ The MP4 remains an intermediate LivePortrait asset. It is not the final wallpape
 - Runtime output video import into the full Asset System.
 - Runtime logs, retry and cancel UX.
 - Generated preview asset management.
+
+## Sprint 25 Runtime Readiness Audit
+
+Sprint 25 adds two foundation pieces:
+
+1. A read-only LivePortrait environment audit script.
+2. A minimal Runtime Host test harness using `node:test`.
+
+Run the audit:
+
+```bash
+node scripts/check-liveportrait-environment.js
+```
+
+Generated reports:
+
+```text
+reports/liveportrait-environment-report.json
+reports/liveportrait-environment-report.md
+```
+
+The audit checks OS, Node, npm, Git, Python, FFmpeg, NVIDIA GPU, PyTorch/CUDA, disk availability and Runtime Host health. It does not install anything and does not execute LivePortrait.
+
+Run runtime tests:
+
+```bash
+npm run test:runtime
+```
+
+The tests cover Runtime Host security, LivePortrait dry-run adapter behavior, runtime output access behavior and command executor safety.
+
+Sprint 26 Roadmap: guided LivePortrait installation and first end-to-end runtime run behind explicit user confirmation.

@@ -1,4 +1,4 @@
-﻿# AI Wallpaper Engine
+# AI Wallpaper Engine
 
 Turn any image into a beautiful live wallpaper in minutes.
 
@@ -500,3 +500,46 @@ Sprint 25 Roadmap:
 - Runtime output video import into the broader Asset System
 - Preview video asset management
 - Safer runtime logs and retry UX
+
+### Runtime Readiness Audit
+
+V0.6 Sprint 25 adds a read-only LivePortrait runtime readiness audit.
+
+Run:
+
+```bash
+node scripts/check-liveportrait-environment.js
+```
+
+The script checks:
+
+- Operating system and architecture
+- Node.js and npm
+- Git
+- Python command availability
+- FFmpeg command availability
+- NVIDIA GPU summary through `nvidia-smi`
+- PyTorch / CUDA availability when Python exists
+- Disk space when it can be checked safely
+- Runtime Host health at `127.0.0.1:8787` or `RUNTIME_HOST_URL`
+
+Reports are written to:
+
+```text
+reports/liveportrait-environment-report.json
+reports/liveportrait-environment-report.md
+```
+
+The audit is read-only. It does not clone LivePortrait, install Python, install PyTorch, download model weights, or enable `realRun`.
+
+Runtime tests:
+
+```bash
+npm run test:runtime
+```
+
+Sprint 26 Roadmap:
+
+- Guided LivePortrait installation flow
+- User-confirmed external runtime setup
+- First end-to-end LivePortrait run behind explicit opt-in

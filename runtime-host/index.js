@@ -22,6 +22,8 @@ const HOST = '127.0.0.1'
 const PORT = Number(process.env.RUNTIME_HOST_PORT ?? 8787)
 const VERSION = '0.1.0'
 const realExecutionEnabled = process.env.RUNTIME_ENABLE_REAL_EXECUTION === 'true'
+const SEEDREAM_MODEL = 'doubao-seedream-5-0-pro-260628'
+const SEEDREAM_BASE_URL = process.env.SEEDREAM_BASE_URL ?? 'https://ark.cn-beijing.volces.com/api/v3'
 
 const sendJson = (response, statusCode, payload, corsHeaders = {}) => {
   response.writeHead(statusCode, {
@@ -31,14 +33,14 @@ const sendJson = (response, statusCode, payload, corsHeaders = {}) => {
   response.end(JSON.stringify(payload))
 }
 
-const readJsonBody = (request) =>
+const readJsonBody = (request, maxBytes = 1024 * 1024) =>
   new Promise((resolve, reject) => {
     let body = ''
 
     request.on('data', (chunk) => {
       body += chunk
 
-      if (body.length > 1024 * 1024) {
+      if (body.length > maxBytes) {
         reject(new Error('Request body too large.'))
         request.destroy()
       }
@@ -57,6 +59,30 @@ const readJsonBody = (request) =>
       }
     })
   })
+
+const readSeedreamError = (payload, fallback) =>
+  payload?.error?.message ?? payload?.message ?? payload?.detail ?? fallback
+
+const callSeedream = async (pathname, options) => {
+  const response = await fetch(`${SEEDREAM_BASE_URL}${pathname}`, options)
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(readSeedreamError(payload, `Seedream request failed (${response.status}).`))
+  return payload
+}
+
+const getGeneratedImage = (payload) => Array.isArray(payload?.data) ? payload.data[0] : null
+
+const getGeneratedImageDataUrl = async (image) => {
+  const base64 = image?.b64_json ?? image?.b64Json ?? image?.base64
+  if (base64) return `data:${image?.mime_type ?? 'image/png'};base64,${base64}`
+  const imageUrl = image?.url ?? image?.image_url
+  if (!imageUrl) throw new Error('Seedream response did not include image data.')
+  const response = await fetch(imageUrl)
+  if (!response.ok) throw new Error(`Generated image download failed (${response.status}).`)
+  const mimeType = response.headers.get('content-type') ?? 'image/png'
+  const buffer = Buffer.from(await response.arrayBuffer())
+  return `data:${mimeType};base64,${buffer.toString('base64')}`
+}
 
 const getJobIdFromPath = (pathname) => pathname.split('/')[4]
 
@@ -232,6 +258,46 @@ const server = http.createServer(async (request, response) => {
       },
       corsHeaders,
     )
+    return
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/images/seedream/test') {
+    try {
+      const body = await readJsonBody(request)
+      if (!body.apiKey || typeof body.apiKey !== 'string') throw new Error('Seedream API Key is required.')
+      await callSeedream('/models', { headers: { Authorization: `Bearer ${body.apiKey}` } })
+      sendJson(response, 200, { ok: true, model: SEEDREAM_MODEL, message: 'Seedream connection succeeded.' }, corsHeaders)
+    } catch (error) {
+      sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : 'Seedream connection failed.' }, corsHeaders)
+    }
+    return
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/images/seedream/generate') {
+    try {
+      const body = await readJsonBody(request, 16 * 1024 * 1024)
+      if (!body.apiKey || typeof body.apiKey !== 'string') throw new Error('Seedream API Key is required.')
+      if (!body.prompt || typeof body.prompt !== 'string' || !body.prompt.trim()) throw new Error('Image prompt is required.')
+      const payload = await callSeedream('/images/generations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${body.apiKey}` },
+        body: JSON.stringify({
+          model: SEEDREAM_MODEL,
+          prompt: body.prompt.trim(),
+          response_format: 'url',
+          size: '2K',
+          stream: false,
+          watermark: true,
+          ...(typeof body.referenceImage === 'string' && body.referenceImage
+            ? { image: body.referenceImage }
+            : {}),
+        }),
+      })
+      const dataUrl = await getGeneratedImageDataUrl(getGeneratedImage(payload))
+      sendJson(response, 200, { ok: true, model: SEEDREAM_MODEL, dataUrl }, corsHeaders)
+    } catch (error) {
+      sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : 'Image generation failed.' }, corsHeaders)
+    }
     return
   }
 

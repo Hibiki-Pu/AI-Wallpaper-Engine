@@ -22,3 +22,17 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Runtime / model artifacts
+runtime-outputs/
+runtime-temp/
+external/
+models/
+checkpoints/
+*.pth
+*.onnx
+
+# Local runtime reports
+reports/*.json
+reports/liveportrait-environment-report.md
+!reports/liveportrait-environment-report.example.md
