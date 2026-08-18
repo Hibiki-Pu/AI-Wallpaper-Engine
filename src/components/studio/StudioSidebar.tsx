@@ -58,6 +58,7 @@ interface StudioSidebarProps {
     intensity: EffectIntensity,
   ) => void
   onEffectAdvanced: (type: WallpaperEffectLayerType) => void
+  onDepthMapGenerated: (mapUrl: string, strength: number) => void
 }
 
 const CATEGORY_ITEMS: Array<{
@@ -109,6 +110,7 @@ export function StudioSidebar({
   getEffectIntensity,
   onEffectIntensityChange,
   onEffectAdvanced,
+  onDepthMapGenerated,
 }: StudioSidebarProps) {
   const { t } = useI18n()
   const [activeCategory, setActiveCategory] =
@@ -180,7 +182,7 @@ export function StudioSidebar({
         )}
 
         {activeCategory === 'animation' && (
-          <MotionPanel imageUrl={spec?.imageUrl ?? null} />
+          <MotionPanel imageUrl={spec?.imageUrl ?? null} onDepthMapGenerated={onDepthMapGenerated} />
         )}
 
         {activeCategory === 'camera' && (

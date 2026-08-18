@@ -26,6 +26,10 @@ import type { RuntimeJobStatus } from '../../types/RuntimeJob'
 import type { RuntimeConfig } from '../../types/RuntimeConfig'
 import type { LivePortraitMotionPreset } from '../../providers/animation/livePortrait/livePortraitTypes'
 import { useI18n } from '../../i18n'
+import {
+  checkDepthAnythingHealth,
+  generateDepthMap,
+} from '../../services/depthAnythingService'
 
 const TARGET_OPTIONS: AnimationTargetType[] = [
   'portrait',
@@ -51,7 +55,7 @@ const PROVIDER_OPTIONS: Array<{
 }> = [
   { value: 'mock', label: 'Mock Provider: Available' },
   { value: 'liveportrait', label: 'LivePortrait: Experimental' },
-  { value: 'depth_anything', label: 'depth_anything (coming soon)', disabled: true },
+  { value: 'depth_anything', label: 'Depth Anything V2: Local' },
   { value: 'sam', label: 'sam (coming soon)', disabled: true },
 ]
 
@@ -153,9 +157,10 @@ const getRuntimeOutputAssetSummary = (asset: unknown): string | null => {
 }
 interface MotionPanelProps {
   imageUrl: string | null
+  onDepthMapGenerated?: (mapUrl: string, strength: number) => void
 }
 
-export function MotionPanel({ imageUrl }: MotionPanelProps) {
+export function MotionPanel({ imageUrl, onDepthMapGenerated }: MotionPanelProps) {
   const { t } = useI18n()
   const [targetType, setTargetType] =
     useState<AnimationTargetType>('portrait')
@@ -180,6 +185,7 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     useState<'expression-friendly' | 'pose-friendly'>('pose-friendly')
   const [drivingMultiplier, setDrivingMultiplier] = useState(1)
   const [stitching, setStitching] = useState(false)
+  const [depthPreview, setDepthPreview] = useState<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -279,6 +285,30 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     }, 120)
 
     try {
+      if (providerName === 'depth_anything') {
+        setStatus('正在检查 Depth Anything V2 本地运行环境…')
+        const health = await checkDepthAnythingHealth(
+          livePortraitRuntimeConfig.runtimeHostUrl,
+          livePortraitRuntimeConfig.runtimeHostToken,
+        )
+        if (!health.ok) {
+          setJobStatus('failed')
+          setStatus(`Depth Anything 尚未就绪：${health.missing.join('、')}`)
+          return
+        }
+        setStatus('正在生成深度图…')
+        const depthResult = await generateDepthMap(
+          imageUrl,
+          livePortraitRuntimeConfig.runtimeHostUrl,
+          livePortraitRuntimeConfig.runtimeHostToken,
+        )
+        setDepthPreview(depthResult.depthMapDataUrl)
+        onDepthMapGenerated?.(depthResult.depthMapDataUrl, strength)
+        setJobStatus('completed')
+        setStatus('深度图已生成，主画布的鼠标视差已启用。')
+        return
+      }
+
       const isLivePortrait =
         providerName === 'liveportrait' || providerName === 'live_portrait'
       let result
@@ -366,6 +396,9 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
       setLayers((currentLayers) => [nextLayer, ...currentLayers])
       setJobStatus(isFallback ? 'fallback' : 'completed')
       setStatus(result.errorMessage ?? t('motionLayerCreated'))
+    } catch (error) {
+      setJobStatus('failed')
+      setStatus(error instanceof Error ? error.message : '生成任务失败。')
     } finally {
       globalThis.clearTimeout(runningTimer)
       setIsGenerating(false)
@@ -547,8 +580,19 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
         disabled={!canGenerate}
         onClick={handleGenerate}
       >
-        {isGenerating ? t('motionGenerating') : t('generateMotionLayer')}
+        {isGenerating
+          ? t('motionGenerating')
+          : providerName === 'depth_anything'
+            ? '生成深度图并启用视差'
+            : t('generateMotionLayer')}
       </button>
+
+      {providerName === 'depth_anything' && depthPreview && (
+        <div className="depth-map-preview">
+          <strong>深度图预览</strong>
+          <img src={depthPreview} alt="Depth map preview" />
+        </div>
+      )}
 
       {!imageUrl && <p className="motion-status">{t('motionNeedsImage')}</p>}
       {jobStatus !== 'idle' && (

@@ -858,6 +858,54 @@
   transform: scale(1);
 }
 
+.depth-parallax {
+  --depth-x: 0px;
+  --depth-y: 0px;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition: transform 160ms ease-out;
+}
+
+.depth-parallax img {
+  position: absolute;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  object-fit: cover;
+  pointer-events: none;
+  transition: transform 120ms ease-out;
+}
+
+.depth-parallax-back {
+  transform: translate(calc(var(--depth-x) * -0.28), calc(var(--depth-y) * -0.28)) scale(1.035);
+  filter: brightness(.91) saturate(.96);
+}
+
+.depth-parallax-front {
+  transform: translate(var(--depth-x), var(--depth-y)) scale(1.055);
+  -webkit-mask-image: var(--depth-map);
+  mask-image: var(--depth-map);
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: center;
+  mask-position: center;
+  mask-mode: luminance;
+}
+
+.depth-map-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.depth-map-preview img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #0a0b10;
+}
+
 .wallpaper-camera-slow_zoom_in,
 .wallpaper-camera-slow_zoom_out,
 .wallpaper-camera-pan_left,

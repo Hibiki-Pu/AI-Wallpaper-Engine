@@ -12,6 +12,7 @@ import { PetalsEffect } from './effects/PetalsEffect'
 import { RainEffect } from './effects/RainEffect'
 import { SnowEffect } from './effects/SnowEffect'
 import { StarsEffect } from './effects/StarsEffect'
+import { DepthParallaxRenderer } from './DepthParallaxRenderer'
 
 interface WallpaperRendererProps {
   spec: WallpaperSpec
@@ -70,6 +71,20 @@ export function WallpaperRenderer({ spec }: WallpaperRendererProps) {
   return (
     <div className="wallpaper-renderer">
       {shouldShowBackground && (
+        spec.depth?.enabled && spec.depth.mapUrl ? (
+          <DepthParallaxRenderer
+            imageUrl={spec.imageUrl}
+            depthMapUrl={spec.depth.mapUrl}
+            strength={spec.depth.strength}
+            className={shouldAnimateCamera ? `wallpaper-image wallpaper-camera-${spec.camera.type}` : 'wallpaper-image'}
+            style={{
+              '--camera-zoom': spec.camera.zoom,
+              '--camera-intensity': spec.camera.intensity ?? 1,
+              '--camera-duration': `${Math.max(6, 28 - spec.camera.speed * 4)}s`,
+              zIndex: backgroundLayer?.zIndex ?? 0,
+            } as CSSProperties}
+          />
+        ) : (
         <img
           className={
             shouldAnimateCamera
@@ -86,7 +101,7 @@ export function WallpaperRenderer({ spec }: WallpaperRendererProps) {
               zIndex: backgroundLayer?.zIndex ?? 0,
             } as CSSProperties
           }
-        />
+        />)
       )}
       {layers.length
         ? layers.map((layer) => {

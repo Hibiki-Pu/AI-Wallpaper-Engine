@@ -17,6 +17,8 @@ import {
   validateRuntimeJobRequest,
   validateRuntimeToken,
 } from './runtimeHostSecurity.js'
+import { executeCommandPlan } from './runtimeCommandExecutor.js'
+import { createDepthAnythingPlan } from './providers/depth-anything/depthAnythingHostAdapter.js'
 
 const HOST = '127.0.0.1'
 const PORT = Number(process.env.RUNTIME_HOST_PORT ?? 8787)
@@ -128,6 +130,59 @@ const saveRuntimeAsset = (body) => {
   const assetPath = path.join(assetDir, filename)
   fs.writeFileSync(assetPath, buffer)
   return { kind: body.kind, path: assetPath, filename, mimeType: match[1], size: buffer.length }
+}
+
+const getDepthAnythingHealth = () => {
+  const probe = createDepthAnythingPlan('source.png', 'health-check')
+  const entryPath = path.join(probe.runtimePath, 'run.py')
+  const missing = [
+    !fs.existsSync(probe.runtimePath) ? 'runtime' : null,
+    !fs.existsSync(probe.commandPlan.command) ? 'python' : null,
+    !fs.existsSync(entryPath) ? 'run.py' : null,
+    !fs.existsSync(probe.checkpointPath) ? 'checkpoint' : null,
+  ].filter(Boolean)
+
+  return {
+    ok: missing.length === 0,
+    providerId: 'depth_anything',
+    runtimePath: probe.runtimePath,
+    pythonCommand: probe.commandPlan.command,
+    checkpointPath: probe.checkpointPath,
+    missing,
+  }
+}
+
+const generateDepthMap = async (body) => {
+  const health = getDepthAnythingHealth()
+  if (!health.ok) {
+    throw new Error(`Depth Anything runtime is not ready: ${health.missing.join(', ')}.`)
+  }
+
+  const asset = saveRuntimeAsset({ kind: 'sourceImage', dataUrl: body.imageDataUrl })
+  const jobId = `depth-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const plan = createDepthAnythingPlan(asset.path, jobId)
+  fs.mkdirSync(plan.outputDir, { recursive: true })
+  const executionResult = await executeCommandPlan(plan.commandPlan)
+
+  if (!executionResult.ok) {
+    throw new Error(
+      executionResult.stderr ||
+        `Depth Anything exited with code ${executionResult.exitCode}.`,
+    )
+  }
+  if (!fs.existsSync(plan.outputPath)) {
+    throw new Error('Depth Anything completed but the depth map is missing.')
+  }
+
+  const data = fs.readFileSync(plan.outputPath)
+  return {
+    jobId,
+    depthMapDataUrl: `data:image/png;base64,${data.toString('base64')}`,
+    width: body.width ?? null,
+    height: body.height ?? null,
+    outputPath: plan.outputPath,
+    executionResult,
+  }
 }
 
 const getJobIdFromPath = (pathname) => pathname.split('/')[4]
@@ -313,6 +368,29 @@ const server = http.createServer(async (request, response) => {
       sendJson(response, 201, { ok: true, asset: saveRuntimeAsset(body) }, corsHeaders)
     } catch (error) {
       sendJson(response, 400, { ok: false, error: error instanceof Error ? error.message : 'Runtime asset upload failed.' }, corsHeaders)
+    }
+    return
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/depth-anything/health') {
+    const health = getDepthAnythingHealth()
+    sendJson(response, health.ok ? 200 : 503, health, corsHeaders)
+    return
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/depth-anything/generate') {
+    try {
+      const body = await readJsonBody(request, 64 * 1024 * 1024)
+      if (typeof body.imageDataUrl !== 'string') {
+        throw new Error('Source image is required.')
+      }
+      const result = await generateDepthMap(body)
+      sendJson(response, 200, { ok: true, ...result }, corsHeaders)
+    } catch (error) {
+      sendJson(response, 400, {
+        ok: false,
+        error: error instanceof Error ? error.message : 'Depth generation failed.',
+      }, corsHeaders)
     }
     return
   }

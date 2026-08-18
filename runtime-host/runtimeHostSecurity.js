@@ -1,4 +1,4 @@
-export const allowedProviders = ['liveportrait']
+export const allowedProviders = ['liveportrait', 'depth_anything']
 
 const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
@@ -48,6 +48,13 @@ export function isAllowedApiPath(pathname) {
   }
 
   if (pathname === '/api/runtime/assets') {
+    return true
+  }
+
+  if (
+    pathname === '/api/depth-anything/health' ||
+    pathname === '/api/depth-anything/generate'
+  ) {
     return true
   }
 

@@ -806,6 +806,12 @@ export function WallpaperStudioPage() {
           getEffectIntensity={getEffectIntensity}
           onEffectIntensityChange={handleEffectIntensityChange}
           onEffectAdvanced={handleEffectAdvanced}
+          onDepthMapGenerated={(mapUrl, strength) =>
+            setWallpaperSpec((current) => current ? {
+              ...current,
+              depth: { enabled: true, mapUrl, strength },
+            } : current)
+          }
         />
       </StudioDrawer>
 

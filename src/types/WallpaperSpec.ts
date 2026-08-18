@@ -3,6 +3,13 @@ export interface WallpaperSpec {
   camera: WallpaperCameraSpec
   effects: WallpaperEffectSpec[]
   layers: WallpaperLayer[]
+  depth?: WallpaperDepthSpec
+}
+
+export interface WallpaperDepthSpec {
+  enabled: boolean
+  mapUrl: string
+  strength: number
 }
 
 export interface WallpaperCameraSpec {
