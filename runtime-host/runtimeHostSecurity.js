@@ -47,6 +47,10 @@ export function isAllowedApiPath(pathname) {
     return true
   }
 
+  if (pathname === '/api/runtime/assets') {
+    return true
+  }
+
   if (pathname === '/api/runtime/jobs') {
     return true
   }

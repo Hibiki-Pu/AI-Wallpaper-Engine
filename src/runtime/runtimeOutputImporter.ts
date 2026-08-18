@@ -23,6 +23,14 @@ const getOutputPath = (outputPlan?: Record<string, unknown>) =>
     ? outputPlan.runtimeOutputPath
     : undefined
 
+const getHostJobId = (job: RuntimeJob) => {
+  const candidate =
+    job.output?.metadata?.runtimeHostJobId ??
+    job.output?.payload?.runtimeHostJobId
+
+  return typeof candidate === 'string' && candidate ? candidate : job.id
+}
+
 export function createRuntimeOutputImportPlan(
   job: RuntimeJob,
 ): RuntimeOutputImportPlan {
@@ -30,7 +38,7 @@ export function createRuntimeOutputImportPlan(
   const outputPlan = getOutputPlan(job)
 
   return {
-    jobId: job.id,
+    jobId: getHostJobId(job),
     providerId: job.input.providerId,
     expectedAssetType: 'video',
     runtimeOutputPath: getOutputPath(outputPlan),
@@ -132,7 +140,8 @@ export async function importRuntimeOutputAsAsset(
     }
   }
 
-  const availability = await checkRuntimeOutputAvailability(job.id, hostUrl, token)
+  const hostJobId = getHostJobId(job)
+  const availability = await checkRuntimeOutputAvailability(hostJobId, hostUrl, token)
 
   if (!availability.ok || !availability.data) {
     return {
@@ -154,7 +163,7 @@ export async function importRuntimeOutputAsAsset(
     plan: {
       ...plan,
       assetImportStatus: status,
-      previewVideoUrl: asset?.url ?? getRuntimeOutputVideoUrl(job.id, hostUrl),
+      previewVideoUrl: asset?.url ?? getRuntimeOutputVideoUrl(hostJobId, hostUrl),
       updatedAt: now(),
     },
     asset,

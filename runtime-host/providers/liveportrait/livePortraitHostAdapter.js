@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 const LIVEPORTRAIT_PROVIDER_ID = 'liveportrait'
 
 const safeFallback = (value, fallback) =>
@@ -16,6 +18,10 @@ export function validateLivePortraitJobInput(input = {}, runtimeConfig = {}) {
 
   if (!input.preset) {
     errors.push('preset is required.')
+  }
+
+  if (!input.drivingVideoPath) {
+    errors.push('drivingVideoPath is required for LivePortrait CLI execution.')
   }
 
   if (typeof input.strength !== 'number' || input.strength < 0 || input.strength > 1) {
@@ -52,7 +58,7 @@ export function validateLivePortraitJobInput(input = {}, runtimeConfig = {}) {
   }
 }
 
-export function buildLivePortraitDryRunCommand(input = {}, runtimeConfig = {}) {
+export function buildLivePortraitDryRunCommand(input = {}, runtimeConfig = {}, outputPlan = null) {
   const source = safeFallback(
     input.sourceImagePath ?? input.sourceImageUrl,
     '<safe-source-path>',
@@ -61,7 +67,7 @@ export function buildLivePortraitDryRunCommand(input = {}, runtimeConfig = {}) {
     input.drivingVideoPath ?? input.drivingVideoUrl ?? input.motionTemplateId,
     input.preset ?? '<safe-driving-path-or-template>',
   )
-  const outputPath = `${safeFallback(runtimeConfig.outputDir, '<safe-output-dir>')}/<generated-output-file>`
+  const outputDir = outputPlan?.outputDir ?? safeFallback(runtimeConfig.outputDir, '<safe-output-dir>')
 
   return {
     providerId: LIVEPORTRAIT_PROVIDER_ID,
@@ -73,8 +79,13 @@ export function buildLivePortraitDryRunCommand(input = {}, runtimeConfig = {}) {
       source,
       '--driving',
       driving,
-      '--output',
-      outputPath,
+      '--output-dir',
+      outputDir,
+      '--driving-option',
+      input.drivingOption === 'pose-friendly' ? 'pose-friendly' : 'expression-friendly',
+      '--driving-multiplier',
+      String(typeof input.drivingMultiplier === 'number' ? input.drivingMultiplier : 1),
+      input.stitching === false ? '--no-flag-stitching' : '--flag-stitching',
     ],
     cwd: safeFallback(runtimeConfig.runtimePath, '<runtime-path>'),
     dryRun: true,
@@ -82,8 +93,11 @@ export function buildLivePortraitDryRunCommand(input = {}, runtimeConfig = {}) {
 }
 
 export function createLivePortraitOutputPlan(input = {}, runtimeConfig = {}, jobId) {
-  const outputFilename = `liveportrait_${jobId}.mp4`
-  const outputDir = safeFallback(runtimeConfig.outputDir, '<runtime-output-dir>')
+  const baseOutputDir = safeFallback(runtimeConfig.outputDir, '<runtime-output-dir>')
+  const outputDir = path.join(baseOutputDir, jobId)
+  const sourceName = path.parse(safeFallback(input.sourceImagePath, 'source.png')).name
+  const drivingName = path.parse(safeFallback(input.drivingVideoPath, 'driving.mp4')).name
+  const outputFilename = `${sourceName}--${drivingName}.mp4`
 
   return {
     outputDir,

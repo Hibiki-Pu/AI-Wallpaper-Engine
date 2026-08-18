@@ -13,12 +13,13 @@ export interface SeedreamHistoryItem {
   id: string
   dataUrl: string
   prompt: string
-  mode: 'text' | 'image'
+  mode: 'text' | 'image' | 'character' | 'tone'
   aspectRatio: string
   aspectRatioLabel: string
   model: string
   createdAt: string
   referenceFileName?: string
+  characterReferenceFileName?: string
 }
 
 interface SeedreamRequestOptions {
@@ -67,12 +68,20 @@ export const testSeedreamConnection = (options: SeedreamRequestOptions) =>
 export const generateSeedreamImage = (
   prompt: string,
   options: SeedreamRequestOptions,
-  referenceImage?: string,
+  referenceImages?: string | string[],
   aspectRatio?: string,
 ) =>
   request<{ ok: true; model: string; dataUrl: string }>(
     '/api/images/seedream/generate',
-    { prompt, ...(referenceImage ? { referenceImage } : {}), ...(aspectRatio ? { aspectRatio } : {}) },
+    {
+      prompt,
+      ...(Array.isArray(referenceImages)
+        ? { referenceImages }
+        : referenceImages
+          ? { referenceImage: referenceImages }
+          : {}),
+      ...(aspectRatio ? { aspectRatio } : {}),
+    },
     options,
   )
 

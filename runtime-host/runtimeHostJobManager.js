@@ -114,14 +114,15 @@ export function createRuntimeHostJob(requestBody, options = {}) {
     }
 
     if (mode === 'dryRun' || mode === 'realRun') {
-      const commandPlan = buildLivePortraitDryRunCommand(
-        requestBody.input ?? {},
-        requestBody.runtimeConfig ?? {},
-      )
       const outputPlan = createLivePortraitOutputPlan(
         requestBody.input ?? {},
         requestBody.runtimeConfig ?? {},
         currentJob.id,
+      )
+      const commandPlan = buildLivePortraitDryRunCommand(
+        requestBody.input ?? {},
+        requestBody.runtimeConfig ?? {},
+        outputPlan,
       )
 
       if (mode === 'dryRun') {

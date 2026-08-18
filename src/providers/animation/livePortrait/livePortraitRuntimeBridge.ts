@@ -232,6 +232,13 @@ export function validateLivePortraitInput(input: LivePortraitInput): string[] {
   }
 
   if (
+    input.drivingMultiplier !== undefined &&
+    (input.drivingMultiplier < 0.5 || input.drivingMultiplier > 2)
+  ) {
+    errors.push('drivingMultiplier must be between 0.5 and 2')
+  }
+
+  if (
     input.preset === 'custom_driving_video' &&
     !input.drivingVideoPath &&
     !input.drivingVideoUrl
@@ -282,19 +289,14 @@ const appendLivePortraitArgs = (
     ...args,
     '--source',
     input.sourceImagePath ?? input.sourceImageUrl ?? '<source-image>',
-    '--preset',
-    input.preset,
-    '--strength',
-    String(input.strength),
-    '--duration',
-    String(input.duration),
-    '--output',
+    '--output-dir',
     config.outputDir || '<output-dir>',
+    '--driving-option',
+    input.drivingOption ?? 'expression-friendly',
+    '--driving-multiplier',
+    String(input.drivingMultiplier ?? 1),
+    input.stitching === false ? '--no-flag-stitching' : '--flag-stitching',
   ]
-
-  if (input.loop) {
-    nextArgs.push('--loop')
-  }
 
   if (input.drivingVideoPath || input.drivingVideoUrl) {
     nextArgs.push(
@@ -375,6 +377,9 @@ export function normalizeLivePortraitOutput(
       drivingVideoPath: input.drivingVideoPath,
       drivingVideoUrl: input.drivingVideoUrl,
       motionTemplateId: input.motionTemplateId,
+      drivingOption: input.drivingOption,
+      drivingMultiplier: input.drivingMultiplier,
+      stitching: input.stitching,
     },
   }
 

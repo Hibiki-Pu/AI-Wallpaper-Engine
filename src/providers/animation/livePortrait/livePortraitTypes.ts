@@ -25,6 +25,9 @@ export interface LivePortraitInput {
   drivingVideoPath?: string
   drivingVideoUrl?: string
   motionTemplateId?: string
+  drivingOption?: 'expression-friendly' | 'pose-friendly'
+  drivingMultiplier?: number
+  stitching?: boolean
 }
 
 export interface LivePortraitOutput {

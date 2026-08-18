@@ -24,6 +24,7 @@ const VERSION = '0.1.0'
 const realExecutionEnabled = process.env.RUNTIME_ENABLE_REAL_EXECUTION === 'true'
 const SEEDREAM_MODEL = 'doubao-seedream-5-0-pro-260628'
 const SEEDREAM_BASE_URL = process.env.SEEDREAM_BASE_URL ?? 'https://ark.cn-beijing.volces.com/api/v3'
+const RUNTIME_INPUT_DIR = process.env.RUNTIME_INPUT_DIR ?? 'D:/ai-wallpaper-runtime-inputs/liveportrait/web'
 
 const sendJson = (response, statusCode, payload, corsHeaders = {}) => {
   response.writeHead(statusCode, {
@@ -86,6 +87,48 @@ const getGeneratedImageDataUrl = async (image) => {
 
 const normalizeSeedreamAspectRatio = (value) =>
   typeof value === 'string' && /^\d+:\d+$/.test(value) ? value : null
+
+const normalizeSeedreamReferenceImages = (body) => {
+  if (Array.isArray(body.referenceImages)) {
+    const images = body.referenceImages.filter((image) => typeof image === 'string' && image)
+    return images.length ? images.slice(0, 2) : null
+  }
+
+  return typeof body.referenceImage === 'string' && body.referenceImage
+    ? body.referenceImage
+    : null
+}
+
+const runtimeAssetKinds = {
+  sourceImage: new Map([
+    ['image/png', '.png'],
+    ['image/jpeg', '.jpg'],
+    ['image/webp', '.webp'],
+  ]),
+  drivingVideo: new Map([
+    ['video/mp4', '.mp4'],
+    ['video/webm', '.webm'],
+    ['video/quicktime', '.mov'],
+  ]),
+}
+
+const saveRuntimeAsset = (body) => {
+  const allowedTypes = runtimeAssetKinds[body.kind]
+  if (!allowedTypes) throw new Error('Unsupported runtime asset kind.')
+  if (typeof body.dataUrl !== 'string') throw new Error('Runtime asset dataUrl is required.')
+  const match = /^data:([^;,]+);base64,([A-Za-z0-9+/=]+)$/.exec(body.dataUrl)
+  if (!match || !allowedTypes.has(match[1])) throw new Error('Unsupported runtime asset format.')
+  const buffer = Buffer.from(match[2], 'base64')
+  if (!buffer.length) throw new Error('Runtime asset is empty.')
+  const extension = allowedTypes.get(match[1])
+  const prefix = body.kind === 'sourceImage' ? 'source' : 'driving'
+  const filename = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${extension}`
+  const assetDir = path.resolve(RUNTIME_INPUT_DIR, body.kind)
+  fs.mkdirSync(assetDir, { recursive: true })
+  const assetPath = path.join(assetDir, filename)
+  fs.writeFileSync(assetPath, buffer)
+  return { kind: body.kind, path: assetPath, filename, mimeType: match[1], size: buffer.length }
+}
 
 const getJobIdFromPath = (pathname) => pathname.split('/')[4]
 
@@ -264,6 +307,16 @@ const server = http.createServer(async (request, response) => {
     return
   }
 
+  if (request.method === 'POST' && url.pathname === '/api/runtime/assets') {
+    try {
+      const body = await readJsonBody(request, 64 * 1024 * 1024)
+      sendJson(response, 201, { ok: true, asset: saveRuntimeAsset(body) }, corsHeaders)
+    } catch (error) {
+      sendJson(response, 400, { ok: false, error: error instanceof Error ? error.message : 'Runtime asset upload failed.' }, corsHeaders)
+    }
+    return
+  }
+
   if (request.method === 'POST' && url.pathname === '/api/images/seedream/test') {
     try {
       const body = await readJsonBody(request)
@@ -278,10 +331,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === 'POST' && url.pathname === '/api/images/seedream/generate') {
     try {
-      const body = await readJsonBody(request, 16 * 1024 * 1024)
+      const body = await readJsonBody(request, 32 * 1024 * 1024)
       if (!body.apiKey || typeof body.apiKey !== 'string') throw new Error('Seedream API Key is required.')
       if (!body.prompt || typeof body.prompt !== 'string' || !body.prompt.trim()) throw new Error('Image prompt is required.')
       const aspectRatio = normalizeSeedreamAspectRatio(body.aspectRatio)
+      const referenceImages = normalizeSeedreamReferenceImages(body)
       const payload = await callSeedream('/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${body.apiKey}` },
@@ -293,9 +347,7 @@ const server = http.createServer(async (request, response) => {
           stream: false,
           watermark: true,
           ...(aspectRatio ? { aspect_ratio: aspectRatio } : {}),
-          ...(typeof body.referenceImage === 'string' && body.referenceImage
-            ? { image: body.referenceImage }
-            : {}),
+          ...(referenceImages ? { image: referenceImages } : {}),
         }),
       })
       const dataUrl = await getGeneratedImageDataUrl(getGeneratedImage(payload))

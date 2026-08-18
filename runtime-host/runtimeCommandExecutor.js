@@ -55,6 +55,11 @@ export function executeCommandPlan(commandPlan, options = {}) {
       cwd: commandPlan.cwd || undefined,
       shell: false,
       windowsHide: true,
+      env: {
+        ...process.env,
+        PYTHONUTF8: '1',
+        PYTHONIOENCODING: 'utf-8',
+      },
     })
 
     const timeout = setTimeout(() => {

@@ -25,6 +25,14 @@ export interface RuntimeHostClientResult<T> {
   error?: string
 }
 
+export interface RuntimeUploadedAsset {
+  kind: 'sourceImage' | 'drivingVideo'
+  path: string
+  filename: string
+  mimeType: string
+  size: number
+}
+
 interface RuntimeHostJobRequest {
   providerId: string
   providerKind: RuntimeJobInput['providerKind']
@@ -40,6 +48,36 @@ const createHeaders = (token?: string) => ({
 
 const normalizeHostUrl = (hostUrl = DEFAULT_RUNTIME_HOST_URL) =>
   hostUrl.replace(/\/+$/, '')
+
+const blobToDataUrl = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error ?? new Error('Unable to read runtime asset.'))
+    reader.readAsDataURL(blob)
+  })
+
+export async function uploadRuntimeAsset(
+  blob: Blob,
+  kind: RuntimeUploadedAsset['kind'],
+  hostUrl = DEFAULT_RUNTIME_HOST_URL,
+  token?: string,
+): Promise<RuntimeHostClientResult<{ asset: RuntimeUploadedAsset }>> {
+  try {
+    const response = await fetch(`${normalizeHostUrl(hostUrl)}/api/runtime/assets`, {
+      method: 'POST',
+      headers: createHeaders(token),
+      body: JSON.stringify({ kind, dataUrl: await blobToDataUrl(blob) }),
+    })
+    const data = (await response.json()) as { asset?: RuntimeUploadedAsset; error?: string }
+    if (!response.ok || !data.asset) {
+      return { ok: false, error: data.error ?? `Runtime Host returned ${response.status}` }
+    }
+    return { ok: true, data: { asset: data.asset } }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Runtime asset upload failed.' }
+  }
+}
 
 export async function checkRuntimeHostHealth(
   hostUrl = DEFAULT_RUNTIME_HOST_URL,

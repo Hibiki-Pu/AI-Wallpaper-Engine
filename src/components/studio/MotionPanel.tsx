@@ -1,5 +1,6 @@
 ﻿import { useMemo, useState } from 'react'
 import { getAnimationProvider } from '../../providers/animation/providerFactory'
+import { useEffect } from 'react'
 import { createLivePortraitProvider } from '../../providers/animation/livePortrait/livePortraitProvider'
 import {
   buildLivePortraitCommand,
@@ -13,6 +14,7 @@ import {
 } from '../../runtime/runtimeConfigStore'
 import {
   checkRuntimeHostHealth,
+  uploadRuntimeAsset,
   type RuntimeHostHealth,
 } from '../../runtime/runtimeHostClient'
 import type {
@@ -172,6 +174,25 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
   const [jobStatus, setJobStatus] =
     useState<RuntimeJobStatus | 'fallback'>('idle')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [drivingVideo, setDrivingVideo] = useState<File | null>(null)
+  const [drivingVideoPreview, setDrivingVideoPreview] = useState<string | null>(null)
+  const [drivingOption, setDrivingOption] =
+    useState<'expression-friendly' | 'pose-friendly'>('pose-friendly')
+  const [drivingMultiplier, setDrivingMultiplier] = useState(1)
+  const [stitching, setStitching] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      if (drivingVideoPreview) {
+        URL.revokeObjectURL(drivingVideoPreview)
+      }
+    }
+  }, [drivingVideoPreview])
+
+  const handleDrivingVideoChange = (file: File | null) => {
+    setDrivingVideo(file)
+    setDrivingVideoPreview(file ? URL.createObjectURL(file) : null)
+  }
 
   const canGenerate = Boolean(imageUrl) && !isGenerating
   const selectedProvider = useMemo(
@@ -194,8 +215,11 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
       strength,
       duration,
       loop,
+      drivingOption,
+      drivingMultiplier,
+      stitching,
     }),
-    [duration, imageUrl, loop, motionType, strength],
+    [drivingMultiplier, drivingOption, duration, imageUrl, loop, motionType, stitching, strength],
   )
   const commandPreview = useMemo(
     () => buildLivePortraitCommand(livePortraitInput, livePortraitRuntimeConfig),
@@ -255,15 +279,65 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
     }, 120)
 
     try {
-      const result = await selectedProvider.generate({
-        imageUrl,
-        targetType,
-        motionType,
-        strength,
-        loop,
-        duration,
-        provider: providerName,
-      })
+      const isLivePortrait =
+        providerName === 'liveportrait' || providerName === 'live_portrait'
+      let result
+
+      if (isLivePortrait) {
+        if (!drivingVideo) {
+          setJobStatus('failed')
+          setStatus(t('drivingVideoRequired'))
+          return
+        }
+
+        setStatus(t('uploadingRuntimeAssets'))
+        const sourceBlob = await fetch(imageUrl).then((response) => response.blob())
+        const [sourceUpload, drivingUpload] = await Promise.all([
+          uploadRuntimeAsset(
+            sourceBlob,
+            'sourceImage',
+            livePortraitRuntimeConfig.runtimeHostUrl,
+            livePortraitRuntimeConfig.runtimeHostToken,
+          ),
+          uploadRuntimeAsset(
+            drivingVideo,
+            'drivingVideo',
+            livePortraitRuntimeConfig.runtimeHostUrl,
+            livePortraitRuntimeConfig.runtimeHostToken,
+          ),
+        ])
+
+        if (!sourceUpload.data || !drivingUpload.data) {
+          setJobStatus('failed')
+          setStatus(
+            sourceUpload.error ??
+              drivingUpload.error ??
+              t('runtimeAssetUploadFailed'),
+          )
+          return
+        }
+
+        setStatus(t('motionGenerating'))
+        result = await createLivePortraitProvider(
+          livePortraitRuntimeConfig,
+        ).generate({
+          ...livePortraitInput,
+          preset: 'custom_driving_video',
+          sourceImageUrl: undefined,
+          sourceImagePath: sourceUpload.data.asset.path,
+          drivingVideoPath: drivingUpload.data.asset.path,
+        })
+      } else {
+        result = await selectedProvider.generate({
+          imageUrl,
+          targetType,
+          motionType,
+          strength,
+          loop,
+          duration,
+          provider: providerName,
+        })
+      }
 
       if (result.status !== 'completed' || !result.motionSpec) {
         setJobStatus('failed')
@@ -358,16 +432,79 @@ export function MotionPanel({ imageUrl }: MotionPanelProps) {
       </label>
 
       {(providerName === 'liveportrait' || providerName === 'live_portrait') && (
-        <RuntimeSettingsPanel
-          config={livePortraitRuntimeConfig}
-          health={livePortraitHealth}
-          commandPreview={commandPreview}
-          hostHealth={hostHealth}
-          hostHealthStatus={hostHealthStatus}
-          onChange={handleRuntimeConfigChange}
-          onReset={handleRuntimeConfigReset}
-          onCheckHost={handleCheckHost}
-        />
+        <>
+          <RuntimeSettingsPanel
+            config={livePortraitRuntimeConfig}
+            health={livePortraitHealth}
+            commandPreview={commandPreview}
+            hostHealth={hostHealth}
+            hostHealthStatus={hostHealthStatus}
+            onChange={handleRuntimeConfigChange}
+            onReset={handleRuntimeConfigReset}
+            onCheckHost={handleCheckHost}
+          />
+          <section className="liveportrait-driving-panel">
+            <h3>{t('drivingVideo')}</h3>
+            <label className="reference-image-upload">
+              <span>{drivingVideo?.name ?? t('chooseDrivingVideo')}</span>
+              <input
+                className="upload-input"
+                type="file"
+                accept="video/mp4,video/webm,video/quicktime"
+                onChange={(event) =>
+                  handleDrivingVideoChange(event.target.files?.[0] ?? null)
+                }
+              />
+            </label>
+            {drivingVideoPreview && (
+              <video
+                className="motion-layer-video-preview"
+                src={drivingVideoPreview}
+                controls
+                muted
+                loop
+              />
+            )}
+            <label className="inspector-field">
+              <span>{t('drivingMode')}</span>
+              <select
+                value={drivingOption}
+                onChange={(event) =>
+                  setDrivingOption(
+                    event.target.value as
+                      | 'expression-friendly'
+                      | 'pose-friendly',
+                  )
+                }
+              >
+                <option value="pose-friendly">pose-friendly</option>
+                <option value="expression-friendly">expression-friendly</option>
+              </select>
+            </label>
+            <label className="inspector-field">
+              <span>{t('drivingMultiplier')}</span>
+              <input
+                type="range"
+                min="0.5"
+                max="1.5"
+                step="0.05"
+                value={drivingMultiplier}
+                onChange={(event) =>
+                  setDrivingMultiplier(Number(event.target.value))
+                }
+              />
+              <output>{drivingMultiplier.toFixed(2)}</output>
+            </label>
+            <label className="inspector-toggle">
+              <input
+                type="checkbox"
+                checked={stitching}
+                onChange={(event) => setStitching(event.target.checked)}
+              />
+              <span>{t('stitching')}</span>
+            </label>
+          </section>
+        </>
       )}
 
       <label className="inspector-field">

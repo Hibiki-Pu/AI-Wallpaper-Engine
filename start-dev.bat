@@ -15,6 +15,8 @@ if not exist node_modules (
 
 echo Starting AI Wallpaper Engine...
 echo Open http://127.0.0.1:5173/ after Vite is ready.
+echo LivePortrait Real Run: enabled
+set "RUNTIME_ENABLE_REAL_EXECUTION=true"
 start "AI Wallpaper Runtime Host" /min cmd /c npm run runtime:host
 call npm run dev -- --host 127.0.0.1
 

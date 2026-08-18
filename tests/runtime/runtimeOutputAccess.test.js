@@ -15,6 +15,7 @@ const runtimeConfig = {
 const input = {
   sourceAssetId: 'current-wallpaper',
   sourceImagePath: 'D:/images/source.png',
+  drivingVideoPath: 'D:/videos/driving.mp4',
   preset: 'blink',
   strength: 0.5,
   duration: 5,
